@@ -1,0 +1,335 @@
+﻿<Window x:Class="OutilWPF.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:mui="http://firstfloorsoftware.com/ModernUI"
+        xmlns:local="clr-namespace:OutilWPF"
+        mc:Ignorable="d"
+        Title="Application Patient Centre étoile laser" Height="1261" Width="1347" WindowStartupLocation="CenterScreen" WindowState="Maximized">
+    <ScrollViewer IsEnabled="{Binding EnableApplication, UpdateSourceTrigger=PropertyChanged}">
+        <ScrollViewer.Resources>
+            <Style x:Key="HyperLinkButtonStyle" TargetType="Button">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <TextBlock TextDecorations="Underline" FontWeight="Normal">
+                            <ContentPresenter />
+                            </TextBlock>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <!--<Setter Property="IsEnabled" Value="True"/>
+                <Setter Property="Foreground" Value="#195AE0" />-->
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="true">
+                        <Setter Property="Foreground" Value="Red" />
+                        <Setter Property="Cursor" Value="Hand" />
+                    </Trigger>
+                    <!--<DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType={x:Type DataGridRow}}}" Value="True">
+                        <Setter Property="Foreground" Value="White" />
+                    </DataTrigger>-->
+                </Style.Triggers>
+            </Style>
+        </ScrollViewer.Resources>
+        <StackPanel>
+            <StackPanel Name="spLogin" Visibility="{Binding LoginVisibility, UpdateSourceTrigger=PropertyChanged}">
+                <TextBlock Text="Login" FontSize="36" Margin="4" TextAlignment="Center"/>
+                <TextBlock x:Name="ErrorMessage" Text="" FontSize="20" Margin="4" Foreground="Red" TextAlignment="Center"/>
+                <ComboBox x:Name="cbLogin" ItemsSource="{Binding LesLogins}" DisplayMemberPath="Item1" SelectedValuePath="Item2"  Margin="4" Width="250" HorizontalAlignment="Center"/>
+                <PasswordBox  x:Name="password"  Margin="4" Width="250" />
+                <Button Name="Valider" Content="Login" Background="DodgerBlue" Foreground="White" Width="80" HorizontalAlignment="Center" Margin="0,20" Click="Valider_Click" />
+                <Button Name="Importer" Content="Importer" Background="DodgerBlue" Foreground="White" Width="80" HorizontalAlignment="Center" Margin="0,20" Click="Importer_Click" Visibility="Collapsed" />
+                <Button Name="Migrate" Content="Migrer" Background="DodgerBlue" Foreground="White" Width="80" HorizontalAlignment="Center" Margin="0,20" Click="Migrate_Click"  Visibility="Collapsed" />
+            </StackPanel>
+            <StackPanel Name="spWork" Visibility="{Binding SpWorkVisibility, UpdateSourceTrigger=PropertyChanged}" Orientation="Horizontal" Grid.Row="1">
+                <StackPanel  Margin="10,20">
+                    <Button Name="CréerNewFichePatient" HorizontalAlignment="Center" Margin="0,10,0,0" Content="Créer une nouvelle fiche patient" Click="CréerNewFichePatient_Click" Visibility="{Binding InfoPatientEditVisibility, UpdateSourceTrigger=PropertyChanged}" Background="LightSkyBlue"/>
+                    <Label Content="Aucun enregistrement n'a été trouvé" HorizontalAlignment="Center" Foreground="Red" FontWeight="Bold" Visibility="{Binding SearchErrorVisibility, UpdateSourceTrigger=PropertyChanged}"/>
+                    <DataGrid Name="ViewPatients" ItemsSource="{Binding PatientsSelectCollection, UpdateSourceTrigger=PropertyChanged}" Margin="10,10"  CanUserAddRows="False" Height="600" CanUserDeleteRows="False"  
+                          SelectionMode="Single" ScrollViewer.VerticalScrollBarVisibility="Auto" AutoGenerateColumns="False" SelectedItem="{Binding SelectedPatientSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                        <DataGrid.Columns>
+                            <DataGridCheckBoxColumn Header="Panier" Binding="{Binding IsSelected}" />
+                            <DataGridTextColumn IsReadOnly="True">
+                                <DataGridTextColumn.CellStyle>
+                                    <Style TargetType="DataGridCell">
+                                        <Setter Property="Background" Value="{Binding Patient.CouleurLapin, UpdateSourceTrigger=PropertyChanged}" />
+                                    </Style>
+                                </DataGridTextColumn.CellStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="NOM" FontWeight="Bold" Binding="{Binding Patient.Nom, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True" >
+                                <DataGridTextColumn.HeaderTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Vertical" HorizontalAlignment="Right">
+                                            <TextBlock Text="{Binding Content, RelativeSource= {RelativeSource Mode=TemplatedParent}}"/>
+                                            <TextBox x:Name="txtNom" Width="100" Text="{Binding DataContext.SearchSearchPatientNom, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                     GotKeyboardFocus="TextBox_GotKeyboardFocus">
+                                                <TextBox.InputBindings>
+                                                    <KeyBinding Key="Enter" Command="{Binding DataContext.FiltrerPatients, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                                                </TextBox.InputBindings>
+                                            </TextBox>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTextColumn.HeaderTemplate>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Prénom" Binding="{Binding Patient.Prénom, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True">
+                                <DataGridTextColumn.HeaderTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Vertical" HorizontalAlignment="Right">
+                                            <TextBlock Text="{Binding Content, RelativeSource= {RelativeSource Mode=TemplatedParent}}"/>
+                                            <TextBox x:Name="txtPrénom" Width="100" Text="{Binding DataContext.SearchSearchPatientPrénom, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                     GotKeyboardFocus="TextBox_GotKeyboardFocus">
+                                                <TextBox.InputBindings>
+                                                    <KeyBinding Key="Enter" Command="{Binding DataContext.FiltrerPatients, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                                                </TextBox.InputBindings>
+                                            </TextBox>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTextColumn.HeaderTemplate>
+                            </DataGridTextColumn>
+                            <DataGridCheckBoxColumn Header="PR" Binding="{Binding Patient.TarifRéduit, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </StackPanel>
+                <StackPanel Margin="10,20">
+                    <StackPanel Orientation="Horizontal">
+                        <Button Name="VisualiserFichePatient" HorizontalAlignment="Left" Content="Imprimer la fiche patient" Command="{Binding SelectedPatientCommand}" CommandParameter="VisualiserFichePatient" Background="LightSkyBlue"/>
+                        <Button Name="OpenOutlook"  HorizontalAlignment="Left" Content="Saisir un nouveau RDV dans Outlook" Command="{Binding SelectedPatientCommand}" CommandParameter="OpenOutlook" Background="LightBlue" Margin="8,0"/>
+                        <Button Name="CopyName"  HorizontalAlignment="Left" Content="Copier NOM Prénom" Command="{Binding SelectedPatientCommand}" CommandParameter="CopyName" Background="LightSkyBlue" Margin="8,0"/>
+                    </StackPanel>
+                    <StackPanel  Margin="10">
+                        <Grid Width="800" HorizontalAlignment="Left">
+                            <Grid.RowDefinitions>
+                                <RowDefinition />
+                                <RowDefinition />
+                                <RowDefinition />
+                                <RowDefinition />
+                                <RowDefinition />
+                                <RowDefinition />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition />
+                                <ColumnDefinition Width="Auto" />
+                                <!--<ColumnDefinition />-->
+                            </Grid.ColumnDefinitions>
+
+                            <Label Grid.Row="0" Grid.Column="0" Content="Champs" Background="LightGreen"/>
+                            <Label Grid.Row="0" Grid.Column="1" Content="Valeur" Background="LightGreen"/>
+                            <Label Grid.Row="0" Grid.Column="2" Content="Champs" Background="LightGreen"/>
+                            <Label Grid.Row="0" Grid.Column="3" Content="Valeur" Background="LightGreen"/>
+
+                            <Label Grid.Row="1" Grid.Column="0" Content="NOM" FontWeight="Bold"/>
+                            <StackPanel Grid.Row="1" Grid.Column="1">
+                                <TextBox x:Name="EditPatientNom" Text="{Binding SelectedPatient.Nom, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" GotKeyboardFocus="TextBox_GotKeyboardFocus" Visibility="{Binding InfoPatientEditVisibility, UpdateSourceTrigger=PropertyChanged}">
+                                    <TextBox.InputBindings>
+                                        <KeyBinding Key="Enter" Command="{Binding DataContext.SaveInfosClients, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                                    </TextBox.InputBindings>
+                                </TextBox>
+                                <TextBlock x:Name="ViewPatientNom" Text="{Binding SelectedPatient.Nom,  UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding InfoPatientViewVisibility, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+
+                            <Label Grid.Row="1" Grid.Column="2" Content="Prénom"  FontWeight="Bold"/>
+                            <StackPanel Grid.Row="1" Grid.Column="3">
+                                <TextBox x:Name="EditPatientPrénom" Text="{Binding SelectedPatient.Prénom, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" GotKeyboardFocus="TextBox_GotKeyboardFocus" Visibility="{Binding InfoPatientEditVisibility, UpdateSourceTrigger=PropertyChanged}">
+                                    <TextBox.InputBindings>
+                                        <KeyBinding Key="Enter" Command="{Binding DataContext.SaveInfosClients, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                                    </TextBox.InputBindings>
+                                </TextBox>
+                                <TextBlock x:Name="ViewPatientPrénom" Text="{Binding SelectedPatient.Prénom,  UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding InfoPatientViewVisibility, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+
+                            <Label Grid.Row="2" Grid.Column="0" Content="Adresse" FontWeight="Bold"/>
+                            <StackPanel Grid.Row="2" Grid.Column="1">
+                                <TextBox x:Name="EditPatientAdresse1" Text="{Binding SelectedPatient.Adresse1, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" GotKeyboardFocus="TextBox_GotKeyboardFocus" Visibility="{Binding InfoPatientEditVisibility, UpdateSourceTrigger=PropertyChanged}">
+                                    <TextBox.InputBindings>
+                                        <KeyBinding Key="Enter" Command="{Binding DataContext.SaveInfosClients, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                                    </TextBox.InputBindings>
+                                </TextBox>
+                                <TextBlock x:Name="ViewPatientAdresse1" Text="{Binding SelectedPatient.Adresse1,  UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding InfoPatientViewVisibility, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+
+                            <Label Grid.Row="2" Grid.Column="2" Content="Adresse (suite)" FontWeight="Bold"/>
+                            <StackPanel Grid.Row="2" Grid.Column="3">
+                                <TextBox x:Name="EditPatientAdresse2" Text="{Binding SelectedPatient.Adresse2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" GotKeyboardFocus="TextBox_GotKeyboardFocus" Visibility="{Binding InfoPatientEditVisibility, UpdateSourceTrigger=PropertyChanged}">
+                                    <TextBox.InputBindings>
+                                        <KeyBinding Key="Enter" Command="{Binding DataContext.SaveInfosClients, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                                    </TextBox.InputBindings>
+                                </TextBox>
+                                <TextBlock x:Name="ViewPatientAdresse2" Text="{Binding SelectedPatient.Adresse2,  UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding InfoPatientViewVisibility, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+
+                            <Label Grid.Row="3" Grid.Column="0" Content="Code postal" FontWeight="Bold"/>
+                            <StackPanel Grid.Row="3" Grid.Column="1">
+                                <TextBox x:Name="EditPatientCodePostal" Text="{Binding SelectedPatient.CodePostal, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" GotKeyboardFocus="TextBox_GotKeyboardFocus" Visibility="{Binding InfoPatientEditVisibility, UpdateSourceTrigger=PropertyChanged}">
+                                    <TextBox.InputBindings>
+                                        <KeyBinding Key="Enter" Command="{Binding DataContext.SaveInfosClients, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                                    </TextBox.InputBindings>
+                                </TextBox>
+                                <TextBlock x:Name="ViewPatientCodePostal" Text="{Binding SelectedPatient.CodePostal,  UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding InfoPatientViewVisibility, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+
+                            <Label Grid.Row="3" Grid.Column="2" Content="Ville" FontWeight="Bold"/>
+                            <StackPanel Grid.Row="3" Grid.Column="3">
+                                <TextBox x:Name="EditPatientVille" Text="{Binding SelectedPatient.Ville, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" GotKeyboardFocus="TextBox_GotKeyboardFocus" Visibility="{Binding InfoPatientEditVisibility, UpdateSourceTrigger=PropertyChanged}">
+                                    <TextBox.InputBindings>
+                                        <KeyBinding Key="Enter" Command="{Binding DataContext.SaveInfosClients, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                                    </TextBox.InputBindings>
+                                </TextBox>
+                                <TextBlock x:Name="ViewPatientVille" Text="{Binding SelectedPatient.Ville,  UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding InfoPatientViewVisibility, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+
+                            <Label Grid.Row="4" Grid.Column="0" Content="Téléphone portable" FontWeight="Bold"/>
+                            <StackPanel Grid.Row="4" Grid.Column="1">
+                                <TextBox x:Name="EditPatientTelephonePortable" Text="{Binding SelectedPatient.TelephonePortable, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" GotKeyboardFocus="TextBox_GotKeyboardFocus" Visibility="{Binding InfoPatientEditVisibility, UpdateSourceTrigger=PropertyChanged}">
+                                    <TextBox.InputBindings>
+                                        <KeyBinding Key="Enter" Command="{Binding DataContext.SaveInfosClients, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                                    </TextBox.InputBindings>
+                                </TextBox>
+                                <TextBlock x:Name="ViewPatientTelephonePortable" Text="{Binding SelectedPatient.TelephonePortable,  UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding InfoPatientViewVisibility, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+
+                            <Label Grid.Row="4" Grid.Column="2" Content="Commentaires" FontWeight="Bold"/>
+                            <StackPanel Grid.Row="4" Grid.Column="3">
+                                <TextBox x:Name="EditPatientCommentaires" Text="{Binding SelectedPatient.Commentaires, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" GotKeyboardFocus="TextBox_GotKeyboardFocus" Visibility="{Binding InfoPatientEditVisibility, UpdateSourceTrigger=PropertyChanged}">
+                                    <TextBox.InputBindings>
+                                        <KeyBinding Key="Enter" Command="{Binding DataContext.SaveInfosClients, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                                    </TextBox.InputBindings>
+                                </TextBox>
+                                <TextBlock x:Name="ViewPatientCommentaires" Text="{Binding SelectedPatient.Commentaires,  UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding InfoPatientViewVisibility, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+
+                            <Label Grid.Row="5" Grid.Column="0" Content="Prix réduit" FontWeight="Bold"/>
+                            <StackPanel Grid.Row="5" Grid.Column="1">
+                                <CheckBox x:Name="EditPatientPrixRéduit" IsChecked="{Binding SelectedPatient.TarifRéduit, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Checked="EditPatientPrixRéduit_Checked" Visibility="{Binding InfoPatientEditVisibility, UpdateSourceTrigger=PropertyChanged}"/>
+                                <TextBlock x:Name="ViewPatientPrixRéduit" Text="{Binding SelectedPatient.TarifRéduit,  UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding InfoPatientViewVisibility, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+
+                            <Label Grid.Row="5" Grid.Column="2" Content="Lapins" FontWeight="Bold"/>
+                            <StackPanel Grid.Row="5" Grid.Column="3">
+                                <ComboBox x:Name="EditPatientLapin" ItemsSource="{Binding ListLapins, UpdateSourceTrigger=PropertyChanged}" DisplayMemberPath="LapinName" SelectedItem="{Binding SelectedPatient.Lapin, Mode=TwoWay,  UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding InfoPatientEditVisibility, UpdateSourceTrigger=PropertyChanged}" SelectionChanged="EditPatientLapin_SelectionChanged"/>
+                                <TextBlock x:Name="ViewPatientLapin" Text="{Binding SelectedPatient.Lapin.LapinName,  UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding InfoPatientViewVisibility, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+
+                            <!--<Label Grid.Row="5" Grid.Column="4" Content="Infos+" FontWeight="Bold"/>
+                            <StackPanel Grid.Row="5" Grid.Column="5">
+                                
+                                <TextBlock x:Name="ViewPatientInfosp" Text="{Binding SelectedPatient.Infosp,  UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding InfoPatientViewVisibility, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>-->
+                        </Grid>
+                    </StackPanel>
+                    <Separator Height="2"/>
+                    <StackPanel Orientation="Horizontal" Width="Auto" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="0,10">
+                        <StackPanel>
+                            <Label Content="Listes des séances" FontWeight="Bold"/>
+                            <DataGrid Name="ViewSéances" ItemsSource="{Binding Séances, UpdateSourceTrigger=PropertyChanged}" CanUserDeleteRows="False"
+                                  CanUserAddRows="false" AutoGenerateColumns="False" Height="500"  VerticalAlignment="Top" SelectionMode="Single" Width="Auto" RowEditEnding="ViewSéances_RowEditEnding"
+                                  ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Auto">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Date" Binding="{Binding DateSéance, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:dd/MM/yyyy}}"/>
+                                    <DataGridTextColumn Header="Salle" Binding="{Binding Praticien.UserName, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True"/>
+                                    <DataGridTemplateColumn>
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Button Content="Changer salle" Command="{Binding  RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}, Path=DataContext.ChangerSalleSéanceCommand}" CommandParameter="{Binding}" Style="{StaticResource HyperLinkButtonStyle}"/>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+
+                                    <DataGridTemplateColumn>
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Button Content="Supprimer" Command="{Binding  RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}, Path=DataContext.DeleteSéanceCommand}" CommandParameter="{Binding}" Style="{StaticResource HyperLinkButtonStyle}"/>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </StackPanel>
+                        <StackPanel Margin="8,0" VerticalAlignment="Top">
+                            <StackPanel  Orientation="Vertical" IsEnabled="{Binding AddTraitementPanelEnabled , UpdateSourceTrigger=PropertyChanged}">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition />
+                                        <RowDefinition />
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="100" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="150" />
+                                        <ColumnDefinition Width="60" />
+                                        <ColumnDefinition Width="100" />
+                                    </Grid.ColumnDefinitions>
+                                    <Label Grid.Row="0" Grid.Column="0" Content="Date séance" Background="LightGreen"/>
+                                    <DatePicker x:Name="EditSéanceDate" Grid.Row="1" Grid.Column="0"  Width="Auto" HorizontalAlignment="Left" SelectedDate="{Binding EditSéanceDate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <Label Grid.Row="0" Grid.Column="1" Content="Salle" Background="LightGreen"/>
+                                    <ComboBox x:Name="EditSéanceSalle" Grid.Row="1" Grid.Column="1" ItemsSource="{Binding LesPraticiens}" DisplayMemberPath="UserName" SelectedValuePath="UserName" SelectedItem="{Binding EditSéanceSalle, Mode=TwoWay , UpdateSourceTrigger=PropertyChanged}" Width="80" Height="30" HorizontalAlignment="Left" Loaded="EditSéanceSalle_Loaded"/>
+                                    <Label Grid.Row="0" Grid.Column="2" Content="Zone Traitée(*)" Background="LightGreen"/>
+                                    <TextBox x:Name="EditSéanceZoneTraitée" Grid.Row="1" Grid.Column="2" Margin="8" Text="{Binding EditSéanceZoneTraitée, Mode=TwoWay , UpdateSourceTrigger=PropertyChanged}"/>
+                                    <Label Grid.Row="0" Grid.Column="3"  Content="Fluence(*)" Background="LightGreen"/>
+                                    <TextBox x:Name="EditSéanceMS_Fluence" Grid.Row="1" Grid.Column="3"  Margin="8" Text="{Binding EditSéanceMS_Fluence, Mode=TwoWay , UpdateSourceTrigger=PropertyChanged}" />
+                                    <Label Grid.Row="0" Grid.Column="4" Content="Pulses(*)" Background="LightGreen"/>
+                                    <TextBox x:Name="EditSéanceNb_Pulses" Grid.Row="1" Grid.Column="4" Margin="8" Text="{Binding EditSéanceNb_Pulses, Mode=TwoWay , UpdateSourceTrigger=PropertyChanged}" />
+                                    <Label Grid.Row="0" Grid.Column="5" Content="Commentaires" Background="LightGreen"/>
+                                    <TextBox x:Name="EditSéanceCommentaires" Grid.Row="1" Grid.Column="5"  Margin="8" TextWrapping="Wrap" AcceptsReturn="True" Text="{Binding EditSéanceCommentaires, Mode=TwoWay , UpdateSourceTrigger=PropertyChanged}" />
+                                    <Label Grid.Row="0" Grid.Column="6" Content="Prix" Background="LightGreen"/>
+                                    <TextBox x:Name="EditSéancePrix" Grid.Row="1" Grid.Column="6" Margin="8" Text="{Binding EditSéancePrix, Mode=TwoWay , UpdateSourceTrigger=PropertyChanged}" />
+                                    <Label Grid.Row="0" Grid.Column="7" Content="Infos+" Background="LightGreen"/>
+                                    <ComboBox x:Name="EditPatientInfosp" Grid.Row="1" Grid.Column="7" ItemsSource="{Binding ListInfosp, UpdateSourceTrigger=PropertyChanged}" DisplayMemberPath="InfosName" SelectedItem="{Binding EditInfosp, Mode=TwoWay,  UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding InfoPatientEditVisibility, UpdateSourceTrigger=PropertyChanged}"/>
+                                </Grid>
+                                <Button Name="AddNewTraitement" Content="Ajouter cette ligne de traitement" Command="{Binding ExecuteCreerNouveauxTraitementCommand}" Width="Auto" Margin="0,8" HorizontalAlignment="Left"  Background="LightSkyBlue"/>
+                            </StackPanel>
+                            <DataGrid Name="ViewListeTraitement" ItemsSource="{Binding Traitements, UpdateSourceTrigger=PropertyChanged}"
+                                          Margin="0,8" CanUserAddRows="False" AutoGenerateColumns="False" Height="600" Width="850"  CanUserDeleteRows="False" RowEditEnding="ViewListeTraitement_RowEditEnding"
+                                          SelectionMode="Single" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Auto">
+                                <DataGrid.Resources>
+                                    <Style TargetType="{x:Type TextBlock}" x:Key="WrapText">
+                                        <Setter Property="TextWrapping" Value="Wrap"/>
+                                    </Style>
+
+                                </DataGrid.Resources>
+                                <DataGrid.CellStyle>
+                                    <Style TargetType="DataGridCell">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{ Binding ZonesTraitées}" Value="lapin">
+                                                <Setter Property="Foreground" Value="Red"/>
+                                                <Setter Property="FontWeight" Value="Bold"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{ Binding ZonesTraitées}" Value="Annulé le jour même">
+                                                <Setter Property="Foreground" Value="Red"/>
+                                                <Setter Property="FontWeight" Value="Bold"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </DataGrid.CellStyle>
+                                <DataGrid.Columns>
+                                    <mui:DataGridTextColumn Header="Date" IsReadOnly="True" Binding="{Binding Séance.DateSéance, Mode=TwoWay, StringFormat={}{0:dd/MM/yyyy}, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <mui:DataGridTextColumn Header="Zones traitées" Width="200" ElementStyle="{StaticResource WrapText}" Binding="{Binding ZonesTraitées, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <mui:DataGridTextColumn Header="Fluence" Binding="{Binding Fluence, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <mui:DataGridTextColumn Header="Pulses" Binding="{Binding Pulses, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <mui:DataGridTextColumn Header="Prix" Binding="{Binding Prix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <mui:DataGridTextColumn Header="Commentaires" Width="150" ElementStyle="{StaticResource WrapText}"  Binding="{Binding Commentaires, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <DataGridTemplateColumn Header="Actions" IsReadOnly="True" >
+                                        <DataGridTemplateColumn.CellTemplate >
+                                            <DataTemplate >
+                                                <TextBlock >
+                                                <!--<Button Content="Effacer" Command="{Binding  RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}, Path=DataContext.EffacerChampsTraitementCommand}" CommandParameter="{Binding}" Style="{StaticResource HyperLinkButtonStyle}"/>-->
+                                                <Button Content="Supprimer" Command="{Binding  RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}, Path=DataContext.DeleteTraitementCommand}" CommandParameter="{Binding}" Style="{StaticResource HyperLinkButtonStyle}"/>
+                                                </TextBlock >
+                                            </DataTemplate >
+                                        </DataGridTemplateColumn.CellTemplate >
+                                    </DataGridTemplateColumn >
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</Window>

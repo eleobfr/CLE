@@ -1,0 +1,30 @@
+# Visual Studio / WPF
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build outputs
+bin/
+obj/
+Debug/
+Release/
+x64/
+x86/
+
+# Legacy NuGet restore folder
+packages/
+
+# Publish and generated deployment artifacts
+publish/
+*.application
+*.manifest
+
+# Local databases and machine-specific artifacts
+*.db
+*.pdb
+*.cache
+
+# Certificates and local secrets
+*.pfx

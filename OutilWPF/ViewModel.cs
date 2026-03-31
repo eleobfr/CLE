@@ -1,0 +1,647 @@
+﻿using OutilWPF.Données;
+using Prism.Commands;
+using Prism.Mvvm;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Windows;
+
+namespace OutilWPF
+{
+    public class ViewModel : BindableBase
+    {
+        private Login UserConnected = null;
+        public List<Tuple<string, string>> LesLogins { get; } = new List<Tuple<string, string>>();
+        public List<Praticien> LesPraticiens { get; } = new List<Praticien>();
+        //public List<string> LesCivilités { get; } = new List<string>();
+        private bool EnableSaveContext = true;
+        private bool enableApplication = true;
+        public bool EnableApplication
+        {
+            get { return enableApplication; }
+            set
+            {
+                SetProperty(ref enableApplication, value);
+            }
+        }
+
+        internal void CheckLogin(string login, string password)
+        {
+            UserConnected = da.CheckLogin(login, password);
+            LoginVisibility = UserConnected != null ? Visibility.Collapsed : Visibility.Visible;
+            SpWorkVisibility = LoginVisibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
+            if (UserConnected != null)
+            {
+                foreach (Lapin la in da.GetLapinList())
+                    ListLapins.Add(la);
+                foreach (Infosp ip in da.GetInfosPList())
+                    ListInfosp.Add(ip);
+                foreach (var lo in da.GetPraticiensList())
+                    LesPraticiens.Add(lo);
+
+                EditSéanceSalle = LesPraticiens.First();
+                RefreshViewPatientsFromDataContext();
+            }
+            RaisePropertyChanged("InfoPatientEditVisibility");
+            RaisePropertyChanged("InfoPatientViewVisibility");
+            RaisePropertyChanged("OutlookVisibility");
+        }
+
+        private Visibility _loginVisibility = Visibility.Visible;
+        public Visibility LoginVisibility
+        {
+            get { return _loginVisibility; }
+            set
+            {
+                SetProperty(ref _loginVisibility, value);
+            }
+        }
+
+        private Visibility _spWorkVisibility = Visibility.Collapsed;
+        public Visibility SpWorkVisibility
+        {
+            get { return _spWorkVisibility; }
+            set
+            {
+                SetProperty(ref _spWorkVisibility, value);
+            }
+        }
+
+        //private Visibility _infoPatientEditVisibility = Visibility.Collapsed;
+        public Visibility InfoPatientEditVisibility
+        {
+            get
+            {
+                Visibility _infoPatientEditVisibility = Visibility.Collapsed;
+                if (UserConnected != null)
+                {
+                    if (UserConnected.UserType == "S")
+                        _infoPatientEditVisibility = Visibility.Visible;
+                }
+                return _infoPatientEditVisibility;
+            }
+        }
+
+        //private Visibility _infoPatientViewVisibility = Visibility.Collapsed;
+        public Visibility InfoPatientViewVisibility
+        {
+            get
+            {
+                Visibility _infoPatientViewVisibility = Visibility.Collapsed;
+                if (UserConnected != null)
+                {
+                    if (UserConnected.UserType == "P")
+                        _infoPatientViewVisibility = Visibility.Visible;
+                }
+                return _infoPatientViewVisibility;
+            }
+        }
+
+        public Visibility OutlookVisibility
+        {
+            get
+            {
+                Visibility _outlookVisibility = Visibility.Collapsed;
+                if (UserConnected != null)
+                {
+                    if (UserConnected.UserType == "S")
+                        _outlookVisibility = Visibility.Visible;
+                }
+                return _outlookVisibility;
+            }
+            //set
+            //{
+            //    _outlookVisibility = value;
+            //    
+            //}
+        }
+        public Visibility SearchErrorVisibility
+        {
+            get
+            {
+                Visibility searchErrorVisibility = Visibility.Collapsed;
+                if (PatientsSelectCollection != null && !PatientsSelectCollection.Any())
+                    searchErrorVisibility = Visibility.Visible;
+                return searchErrorVisibility;
+            }
+        }
+
+        internal void MigrerDonnées()
+        {
+            da.MigrateDatas();
+        }
+
+        //public bool NewSeanceEnabled
+        //{
+        //    get
+        //    {
+        //        bool _newSeanceEnabled = false;
+        //        if (UserConnected != null && selectedPatient != null)
+        //        {
+        //            if (UserConnected.UserType == "P" || UserConnected.UserType == "G")
+        //                _newSeanceEnabled = true;
+        //        }
+        //        return _newSeanceEnabled;
+        //    }
+        //}
+
+        //public Visibility AddTraitementPanelVisibility
+        //{
+        //    get
+        //    {
+        //        var _addTraitementPanelVisibility = Visibility.Collapsed;
+        //        if (SelectedPatient != null)
+        //            _addTraitementPanelVisibility = Visibility.Visible;
+        //        return _addTraitementPanelVisibility;
+        //    }
+        //}
+
+        public bool AddTraitementPanelEnabled
+        {
+            get
+            {
+                var _addTraitementPanelEnabled = false;
+                if (SelectedPatient != null)
+                    _addTraitementPanelEnabled = true;
+                return _addTraitementPanelEnabled;
+            }
+        }
+
+        private ObservableCollection<Patient> _patients;
+        //public ObservableCollection<Patient> Patients
+        //{
+        //    get { return _patients; }
+        //    set
+        //    {
+        //        SetProperty(ref _patients, value);
+        //    }
+        //}
+        private ObservableCollection<PatientSelect> _patientsSelec = new ObservableCollection<PatientSelect>();
+        public ObservableCollection<PatientSelect> PatientsSelectCollection
+        {
+            get { return _patientsSelec; }
+            set
+            {
+                SetProperty(ref _patientsSelec, value);
+            }
+        }
+        //public ICollectionView PatientsView
+        //{
+        //    get { return CollectionViewSource.GetDefaultView(Patients); }
+        //}
+
+        private string searchSearchPatientNom = "";
+        public string SearchSearchPatientNom
+        {
+            get { return searchSearchPatientNom; }
+            set
+            {
+                SetProperty(ref searchSearchPatientNom, value);
+
+                //RefreshViewPatientsFromDataContext();
+                //PatientsView.Refresh();
+            }
+        }
+
+        private string searchSearchPatientPrénom = "";
+        public string SearchSearchPatientPrénom
+        {
+            get { return searchSearchPatientPrénom; }
+            set
+            {
+                SetProperty(ref searchSearchPatientPrénom, value);
+                //RefreshViewPatientsFromDataContext();
+
+                //PatientsView.Refresh();
+            }
+        }
+
+        internal void FreezeSaveDataContext(bool état)
+        {
+            EnableSaveContext = état;
+        }
+        private Patient selectedPatient;
+        public Patient SelectedPatient
+        {
+            get { return selectedPatient; }
+            set
+            {
+                EnableSaveContext = false;
+                SetProperty(ref selectedPatient, value);
+                EnableSaveContext = true;
+
+                SelectedpatientDatasUpdate();
+                EffacerChampsTraitement();
+                RaisePropertyChanged("AddTraitementPanelEnabled");
+                SelectedPatientCommand.RaiseCanExecuteChanged();
+            }
+        }
+        private PatientSelect selectedPatientSelected;
+        public PatientSelect SelectedPatientSelected
+        {
+            get { return selectedPatientSelected; }
+            set
+            {
+                SetProperty(ref selectedPatientSelected, value);
+                //if(value==null)
+                //    SelectedPatient=
+                SelectedPatient = value?.Patient;
+            }
+        }
+
+        //private ObservableCollection<RDVOutlook> _rdvsoutlook;
+        //public ObservableCollection<RDVOutlook> RDVsOutlook
+        //{
+        //    get { return _rdvsoutlook; }
+        //    set
+        //    {
+        //        SetProperty(ref _rdvsoutlook, value);
+        //    }
+        //}
+
+        private ObservableCollection<Séance> _séances;
+        public ObservableCollection<Séance> Séances
+        {
+            get { return _séances; }
+            set
+            {
+                SetProperty(ref _séances, value);
+            }
+        }
+
+        private ObservableCollection<Traitement> _traitements = new ObservableCollection<Traitement>();
+        public ObservableCollection<Traitement> Traitements
+        {
+            get { return _traitements; }
+            set
+            {
+                SetProperty(ref _traitements, value);
+                //Séances = da.GetSéances(selectedPatient);                
+            }
+        }
+
+        private List<Lapin> listLapins = new List<Lapin>();
+        public List<Lapin> ListLapins
+        {
+            get { return listLapins; }
+            set
+            {
+                SetProperty(ref listLapins, value);
+            }
+        }
+
+        private List<Infosp> listInfosp = new List<Infosp>();
+        public List<Infosp> ListInfosp
+        {
+            get { return listInfosp; }
+            set
+            {
+                SetProperty(ref listInfosp, value);
+            }
+        }
+
+
+        private DateTime editSéanceDate = DateTime.Today;
+        public DateTime EditSéanceDate
+        {
+            get { return editSéanceDate; }
+            set
+            {
+                SetProperty(ref editSéanceDate, value);
+            }
+        }
+
+        private Infosp editInfosp = null;
+        public Infosp EditInfosp
+        {
+            get { return editInfosp; }
+            set
+            {
+                SetProperty(ref editInfosp, value);
+                if (value != null) EditSéanceZoneTraitée = value.InfosName;
+            }
+        }
+
+        private Praticien editSéanceSalle;
+        public Praticien EditSéanceSalle
+        {
+            get { return editSéanceSalle; }
+            set
+            {
+                SetProperty(ref editSéanceSalle, value);
+            }
+        }
+
+        private string editSéanceZoneTraitée = null;
+        public string EditSéanceZoneTraitée
+        {
+            get { return editSéanceZoneTraitée; }
+            set
+            {
+                SetProperty(ref editSéanceZoneTraitée, value);
+                ExecuteCreerNouveauxTraitementCommand.RaiseCanExecuteChanged();
+            }
+        }
+
+        private string editSéanceMS_Fluence = null;
+        public string EditSéanceMS_Fluence
+        {
+            get { return editSéanceMS_Fluence; }
+            set
+            {
+                SetProperty(ref editSéanceMS_Fluence, value);
+                ExecuteCreerNouveauxTraitementCommand.RaiseCanExecuteChanged();
+            }
+        }
+
+        private string editSéanceNb_Pulses = null;
+        public string EditSéanceNb_Pulses
+        {
+            get { return editSéanceNb_Pulses; }
+            set
+            {
+                SetProperty(ref editSéanceNb_Pulses, value);
+            }
+        }
+
+        private string editSéanceCommentaires = null;
+        public string EditSéanceCommentaires
+        {
+            get { return editSéanceCommentaires; }
+            set
+            {
+                SetProperty(ref editSéanceCommentaires, value);
+            }
+        }
+
+        private string editSéancePrix = null;
+        public string EditSéancePrix
+        {
+            get { return editSéancePrix; }
+            set
+            {
+                SetProperty(ref editSéancePrix, value);
+            }
+        }
+
+        public void ExecutCreerNouvelleFichePatientCCommand()
+        {
+            var newpatient = da.CreateNewPatient();
+            PatientsSelectCollection.Insert(0, new PatientSelect() { Patient = newpatient });
+            SelectedPatientSelected = PatientsSelectCollection.First();
+            //Patients.Insert(0, newpatient);
+            //Patients.Add(newpatient);
+            //SelectedPatient = newpatient;
+        }
+
+
+        private DelegateCommand executeCreerNouveauxTraitementCommand;
+        public DelegateCommand ExecuteCreerNouveauxTraitementCommand
+        {
+            get
+            {
+                return executeCreerNouveauxTraitementCommand ?? (executeCreerNouveauxTraitementCommand = new DelegateCommand(ExecuteCreerNouveauxTraitement, () => CanSubmit()));
+            }
+        }
+
+        private void ExecuteCreerNouveauxTraitement()
+        {
+            EnableApplication = false;
+            //var = zone EditSéanceZoneTraitée
+            Traitement tr = new Traitement() { ZonesTraitées = EditSéanceZoneTraitée, Fluence = EditSéanceMS_Fluence, Pulses = EditSéanceNb_Pulses, Commentaires = EditSéanceCommentaires, Prix = editSéancePrix };
+
+            da.CreateNewTraitement(selectedPatient, tr, EditSéanceSalle, EditSéanceDate);
+            Traitements.Add(tr);
+            Traitements = new ObservableCollection<Traitement>(Traitements.OrderByDescending(p => p.Séance.DateSéance).ThenBy(p => p.Fluence));
+            if (!Séances.Select(s => s.SéanceId).Contains(tr.Séance.SéanceId)) Séances.Add(tr.Séance);
+            EffacerChampsTraitement();
+            EnableApplication = true;
+        }
+        private bool CanSubmit()
+        {
+            bool execute = SelectedPatient != null;
+            return execute;
+        }
+
+        private DelegateCommand filtrerPatients;
+        public DelegateCommand FiltrerPatients
+        {
+            get
+            {
+                return filtrerPatients ?? (filtrerPatients = new DelegateCommand(RefreshViewPatientsFromDataContext, () => true));
+            }
+        }
+
+        private void RefreshViewPatientsFromDataContext()
+        {
+            var Patients = da.GetPatients(SearchSearchPatientNom, SearchSearchPatientPrénom);
+            PatientsSelectCollection = new ObservableCollection<PatientSelect>();
+            foreach (var p in Patients)
+            {
+                PatientsSelectCollection.Add(new PatientSelect() { Patient = p });
+            }
+            if (SelectedPatientSelected != null) { 
+            SelectedPatientSelected.Patient = null;
+            SelectedPatientSelected.IsSelected = false;
+                //SelectedPatient = null;
+            }
+            RaisePropertyChanged("SearchErrorVisibility");
+        }
+
+        private DelegateCommand saveInfosClients;
+        public DelegateCommand SaveInfosClients
+        {
+            get
+            {
+                return saveInfosClients ?? (saveInfosClients = new DelegateCommand(SaveChangesToContext, () => CanSaveInfosClients()));
+            }
+        }
+
+        private bool CanSaveInfosClients()
+        {
+            return SelectedPatient != null;
+        }
+
+
+        private DelegateCommand<Traitement> deleteTraitementCommand;
+        public DelegateCommand<Traitement> DeleteTraitementCommand
+        {
+            get
+            {
+                return deleteTraitementCommand ?? (deleteTraitementCommand = new DelegateCommand<Traitement>(DeleteTraitement, (param) => true));
+            }
+        }
+        private void DeleteTraitement(Traitement traitement)
+        {
+            Traitements.Remove(traitement);
+            da.RemoveTraitement(traitement);
+        }
+
+        private DelegateCommand<Traitement> effacerChampsTraitementCommand;
+        public DelegateCommand<Traitement> EffacerChampsTraitementCommand
+        {
+            get
+            {
+                return effacerChampsTraitementCommand ?? (effacerChampsTraitementCommand = new DelegateCommand<Traitement>(EffacerChampsTraitementExecuteCommand, (param) => true));
+            }
+        }
+        private void EffacerChampsTraitementExecuteCommand(Traitement traitement)
+        {
+            traitement.Commentaires = null;
+            traitement.Prix = null;
+            traitement.Pulses = null;
+            traitement.Fluence = null;
+            traitement.ZonesTraitées = null;
+            SaveChangesToContext();
+        }
+
+
+        private DelegateCommand<string> selectedPatientCommand;
+        public DelegateCommand<string> SelectedPatientCommand
+        {
+            get
+            {
+                return selectedPatientCommand ?? (selectedPatientCommand = new DelegateCommand<string>(SelectedPatientExecuteCommand, (name) => CanCopyInfosClients(name)));
+            }
+        }
+        private void SelectedPatientExecuteCommand(string name)
+        {
+            if (name == "VisualiserFichePatient")
+                VisualiserFichePatient();
+            else if (name == "OpenOutlook")
+                TraiterOutlookCalendar();
+            else if (name == "CopyName")
+                Clipboard.SetText(SelectedPatient.NomPrenom);
+        }
+        private bool CanCopyInfosClients(string name)
+        {
+            return SelectedPatient != null;
+        }
+
+
+        private DelegateCommand<Séance> changeSalleSéanceCommand;
+        public DelegateCommand<Séance> ChangerSalleSéanceCommand
+        {
+            get
+            {
+                return changeSalleSéanceCommand ?? (changeSalleSéanceCommand = new DelegateCommand<Séance>(ChangeSalleSéanceExecuteCommand, (param) => true));
+            }
+        }
+
+        private void ChangeSalleSéanceExecuteCommand(Séance séance)
+        {
+            séance.Praticien = EditSéanceSalle;
+            //RaisePropertyChanged("Séances");
+            SaveChangesToContext();
+        }
+
+
+        private DelegateCommand<Séance> deleteSéanceCommand;
+        public DelegateCommand<Séance> DeleteSéanceCommand
+        {
+            get
+            {
+                return deleteSéanceCommand ?? (deleteSéanceCommand = new DelegateCommand<Séance>(DeleteSéance, (param) => true));
+            }
+        }
+
+        private void DeleteSéance(Séance séance)
+        {
+            if (séance.Traitements != null)
+                foreach (var t in séance.Traitements)
+                    Traitements.Remove(t);
+            Séances.Remove(séance);
+            da.RemoveSéance(séance);//s'occupe d'enlever les traitements de la bd
+        }
+
+        private Access da = null;
+        public ViewModel()
+        {
+
+        }
+
+        private void SelectedpatientDatasUpdate()
+        {
+            Séances = da.GetSéances(selectedPatient); /*Séances.CollectionChanged += Séances_CollectionChanged;*/
+            Traitements = da.GetTraitements(SelectedPatient); /*Traitements.CollectionChanged += Traitements_CollectionChanged;*/
+        }
+
+        internal void LoadDatas(bool oui)
+        {
+            if (oui)
+            {
+                da = new Access
+                    
+                    
+                    ();
+                foreach (var lo in da.GetLoginList())
+                    LesLogins.Add(new Tuple<string, string>(lo, lo));
+
+            }
+            else
+            {
+                MessageBox.Show("Erreur de base de données. L'application va se fermer", "Centre étoile LASER", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                Application.Current.Shutdown();
+            }
+        }
+
+        internal void SaveChangesToContext()
+        {
+            if (EnableSaveContext)
+                da.SaveContext();
+        }
+
+        private void TraiterOutlookCalendar()
+        {
+
+            EnableApplication = false;
+            da.NewRDVOutlook(selectedPatient);
+            EnableApplication = true;
+        }
+
+        private void VisualiserFichePatient()
+        {
+            EnableApplication = false;
+            da.VisualiserFichePatient(selectedPatient);
+            EnableApplication = true;
+        }
+
+        internal void ImporterPatients()
+        {
+            da.ImporterPatients();
+        }
+
+        private void EffacerChampsTraitement()
+        {
+            EditSéanceDate = DateTime.Today;
+            EditSéanceZoneTraitée = null;
+            EditSéanceMS_Fluence = null;
+            EditSéanceNb_Pulses = null;
+            EditSéanceCommentaires = null;
+            EditSéancePrix = null;
+            EditInfosp = null;
+        }
+    }
+    public class PatientSelect : BindableBase
+    {
+        private Patient patient;
+        private bool _IsSelected = false;
+        public Patient Patient
+        {
+            get { return patient; }
+            set
+            {
+                SetProperty(ref patient, value);
+            }
+        }
+        public virtual bool IsSelected
+        {
+            get { return _IsSelected; }
+            set
+            {
+                SetProperty(ref _IsSelected, value);
+            }
+        }
+    }
+}
