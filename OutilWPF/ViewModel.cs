@@ -13,9 +13,19 @@ namespace OutilWPF
     public class ViewModel : BindableBase
     {
         private readonly PatientWorkspace patientWorkspace;
+        private readonly ReferenceDataWorkspace referenceDataWorkspace;
+        private readonly TreatmentWorkspace treatmentWorkspace;
         private Login UserConnected = null;
-        public List<Tuple<string, string>> LesLogins { get; } = new List<Tuple<string, string>>();
-        public List<Praticien> LesPraticiens { get; } = new List<Praticien>();
+        public List<Tuple<string, string>> LesLogins
+        {
+            get { return referenceDataWorkspace.LesLogins; }
+            set { referenceDataWorkspace.LesLogins = value; }
+        }
+        public List<Praticien> LesPraticiens
+        {
+            get { return referenceDataWorkspace.LesPraticiens; }
+            set { referenceDataWorkspace.LesPraticiens = value; }
+        }
         //public List<string> LesCivilités { get; } = new List<string>();
         private bool EnableSaveContext = true;
         private bool enableApplication = true;
@@ -35,14 +45,9 @@ namespace OutilWPF
             SpWorkVisibility = LoginVisibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
             if (UserConnected != null)
             {
-                foreach (Lapin la in da.GetLapinList())
-                    ListLapins.Add(la);
-                foreach (Infosp ip in da.GetInfosPList())
-                    ListInfosp.Add(ip);
-                foreach (var lo in da.GetPraticiensList())
-                    LesPraticiens.Add(lo);
-
-                EditSéanceSalle = LesPraticiens.First();
+                referenceDataWorkspace.LoadAuthenticatedReferenceData(da);
+                if (LesPraticiens.Any())
+                    EditSéanceSalle = LesPraticiens.First();
                 RefreshViewPatientsFromDataContext();
             }
             RaisePropertyChanged("InfoPatientEditVisibility");
@@ -161,13 +166,7 @@ namespace OutilWPF
 
         public bool AddTraitementPanelEnabled
         {
-            get
-            {
-                var _addTraitementPanelEnabled = false;
-                if (SelectedPatient != null)
-                    _addTraitementPanelEnabled = true;
-                return _addTraitementPanelEnabled;
-            }
+            get { return treatmentWorkspace.AddTraitementPanelEnabled; }
         }
 
         public ObservableCollection<PatientSelect> PatientsSelectCollection
@@ -219,118 +218,75 @@ namespace OutilWPF
 
         public ObservableCollection<Séance> Séances
         {
-            get { return patientWorkspace.Séances; }
-            set { patientWorkspace.Séances = value; }
+            get { return treatmentWorkspace.Séances; }
+            set { treatmentWorkspace.Séances = value; }
         }
 
         public ObservableCollection<Traitement> Traitements
         {
-            get { return patientWorkspace.Traitements; }
-            set { patientWorkspace.Traitements = value; }
+            get { return treatmentWorkspace.Traitements; }
+            set { treatmentWorkspace.Traitements = value; }
         }
 
-        private List<Lapin> listLapins = new List<Lapin>();
         public List<Lapin> ListLapins
         {
-            get { return listLapins; }
-            set
-            {
-                SetProperty(ref listLapins, value);
-            }
+            get { return referenceDataWorkspace.ListLapins; }
+            set { referenceDataWorkspace.ListLapins = value; }
         }
 
-        private List<Infosp> listInfosp = new List<Infosp>();
         public List<Infosp> ListInfosp
         {
-            get { return listInfosp; }
-            set
-            {
-                SetProperty(ref listInfosp, value);
-            }
+            get { return referenceDataWorkspace.ListInfosp; }
+            set { referenceDataWorkspace.ListInfosp = value; }
         }
 
 
-        private DateTime editSéanceDate = DateTime.Today;
         public DateTime EditSéanceDate
         {
-            get { return editSéanceDate; }
-            set
-            {
-                SetProperty(ref editSéanceDate, value);
-            }
+            get { return treatmentWorkspace.EditSéanceDate; }
+            set { treatmentWorkspace.EditSéanceDate = value; }
         }
 
-        private Infosp editInfosp = null;
         public Infosp EditInfosp
         {
-            get { return editInfosp; }
-            set
-            {
-                SetProperty(ref editInfosp, value);
-                if (value != null) EditSéanceZoneTraitée = value.InfosName;
-            }
+            get { return treatmentWorkspace.EditInfosp; }
+            set { treatmentWorkspace.EditInfosp = value; }
         }
 
-        private Praticien editSéanceSalle;
         public Praticien EditSéanceSalle
         {
-            get { return editSéanceSalle; }
-            set
-            {
-                SetProperty(ref editSéanceSalle, value);
-            }
+            get { return treatmentWorkspace.EditSéanceSalle; }
+            set { treatmentWorkspace.EditSéanceSalle = value; }
         }
 
-        private string editSéanceZoneTraitée = null;
         public string EditSéanceZoneTraitée
         {
-            get { return editSéanceZoneTraitée; }
-            set
-            {
-                SetProperty(ref editSéanceZoneTraitée, value);
-                ExecuteCreerNouveauxTraitementCommand.RaiseCanExecuteChanged();
-            }
+            get { return treatmentWorkspace.EditSéanceZoneTraitée; }
+            set { treatmentWorkspace.EditSéanceZoneTraitée = value; }
         }
 
-        private string editSéanceMS_Fluence = null;
         public string EditSéanceMS_Fluence
         {
-            get { return editSéanceMS_Fluence; }
-            set
-            {
-                SetProperty(ref editSéanceMS_Fluence, value);
-                ExecuteCreerNouveauxTraitementCommand.RaiseCanExecuteChanged();
-            }
+            get { return treatmentWorkspace.EditSéanceMS_Fluence; }
+            set { treatmentWorkspace.EditSéanceMS_Fluence = value; }
         }
 
-        private string editSéanceNb_Pulses = null;
         public string EditSéanceNb_Pulses
         {
-            get { return editSéanceNb_Pulses; }
-            set
-            {
-                SetProperty(ref editSéanceNb_Pulses, value);
-            }
+            get { return treatmentWorkspace.EditSéanceNb_Pulses; }
+            set { treatmentWorkspace.EditSéanceNb_Pulses = value; }
         }
 
-        private string editSéanceCommentaires = null;
         public string EditSéanceCommentaires
         {
-            get { return editSéanceCommentaires; }
-            set
-            {
-                SetProperty(ref editSéanceCommentaires, value);
-            }
+            get { return treatmentWorkspace.EditSéanceCommentaires; }
+            set { treatmentWorkspace.EditSéanceCommentaires = value; }
         }
 
-        private string editSéancePrix = null;
         public string EditSéancePrix
         {
-            get { return editSéancePrix; }
-            set
-            {
-                SetProperty(ref editSéancePrix, value);
-            }
+            get { return treatmentWorkspace.EditSéancePrix; }
+            set { treatmentWorkspace.EditSéancePrix = value; }
         }
 
         public void ExecutCreerNouvelleFichePatientCCommand()
@@ -351,14 +307,7 @@ namespace OutilWPF
         private void ExecuteCreerNouveauxTraitement()
         {
             EnableApplication = false;
-            //var = zone EditSéanceZoneTraitée
-            Traitement tr = new Traitement() { ZonesTraitées = EditSéanceZoneTraitée, Fluence = EditSéanceMS_Fluence, Pulses = EditSéanceNb_Pulses, Commentaires = EditSéanceCommentaires, Prix = editSéancePrix };
-
-            da.CreateNewTraitement(SelectedPatient, tr, EditSéanceSalle, EditSéanceDate);
-            Traitements.Add(tr);
-            Traitements = new ObservableCollection<Traitement>(Traitements.OrderByDescending(p => p.Séance.DateSéance).ThenBy(p => p.Fluence));
-            if (!Séances.Select(s => s.SéanceId).Contains(tr.Séance.SéanceId)) Séances.Add(tr.Séance);
-            EffacerChampsTraitement();
+            treatmentWorkspace.CreateNewTraitement();
             EnableApplication = true;
         }
         private bool CanSubmit()
@@ -407,8 +356,7 @@ namespace OutilWPF
         }
         private void DeleteTraitement(Traitement traitement)
         {
-            Traitements.Remove(traitement);
-            da.RemoveTraitement(traitement);
+            treatmentWorkspace.DeleteTraitement(traitement);
         }
 
         private DelegateCommand<Traitement> effacerChampsTraitementCommand;
@@ -464,9 +412,7 @@ namespace OutilWPF
 
         private void ChangeSalleSéanceExecuteCommand(Séance séance)
         {
-            séance.Praticien = EditSéanceSalle;
-            //RaisePropertyChanged("Séances");
-            SaveChangesToContext();
+            treatmentWorkspace.ChangeSalleSéance(séance);
         }
 
 
@@ -481,18 +427,18 @@ namespace OutilWPF
 
         private void DeleteSéance(Séance séance)
         {
-            if (séance.Traitements != null)
-                foreach (var t in séance.Traitements)
-                    Traitements.Remove(t);
-            Séances.Remove(séance);
-            da.RemoveSéance(séance);//s'occupe d'enlever les traitements de la bd
+            treatmentWorkspace.DeleteSéance(séance);
         }
 
         private IClinicDataService da = null;
         public ViewModel()
         {
             patientWorkspace = new PatientWorkspace();
+            referenceDataWorkspace = new ReferenceDataWorkspace();
+            treatmentWorkspace = new TreatmentWorkspace();
             patientWorkspace.PropertyChanged += PatientWorkspace_PropertyChanged;
+            referenceDataWorkspace.PropertyChanged += ReferenceDataWorkspace_PropertyChanged;
+            treatmentWorkspace.PropertyChanged += TreatmentWorkspace_PropertyChanged;
         }
 
         internal void LoadDatas(bool oui)
@@ -503,8 +449,8 @@ namespace OutilWPF
                 {
                     da = new Access();
                     patientWorkspace.AttachDataService(da);
-                    foreach (var lo in da.GetLoginList())
-                        LesLogins.Add(new Tuple<string, string>(lo, lo));
+                    treatmentWorkspace.AttachDataService(da);
+                    referenceDataWorkspace.LoadLoginChoices(da);
                 }
                 catch (Exception ex)
                 {
@@ -547,13 +493,7 @@ namespace OutilWPF
 
         private void EffacerChampsTraitement()
         {
-            EditSéanceDate = DateTime.Today;
-            EditSéanceZoneTraitée = null;
-            EditSéanceMS_Fluence = null;
-            EditSéanceNb_Pulses = null;
-            EditSéanceCommentaires = null;
-            EditSéancePrix = null;
-            EditInfosp = null;
+            treatmentWorkspace.ResetEditor();
         }
 
         private void PatientWorkspace_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -565,12 +505,25 @@ namespace OutilWPF
 
             if (e.PropertyName == nameof(SelectedPatient))
             {
-                EffacerChampsTraitement();
+                treatmentWorkspace.SetSelectedPatient(SelectedPatient);
                 RaisePropertyChanged(nameof(AddTraitementPanelEnabled));
                 SelectedPatientCommand?.RaiseCanExecuteChanged();
                 SaveInfosClients?.RaiseCanExecuteChanged();
                 ExecuteCreerNouveauxTraitementCommand?.RaiseCanExecuteChanged();
             }
+        }
+
+        private void ReferenceDataWorkspace_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            RaisePropertyChanged(e.PropertyName);
+        }
+
+        private void TreatmentWorkspace_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            RaisePropertyChanged(e.PropertyName);
+
+            if (e.PropertyName == nameof(EditSéanceZoneTraitée) || e.PropertyName == nameof(EditSéanceMS_Fluence) || e.PropertyName == nameof(SelectedPatient))
+                ExecuteCreerNouveauxTraitementCommand?.RaiseCanExecuteChanged();
         }
     }
     public class PatientSelect : BindableBase

@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Data.SqlClient;
 
 namespace OutilWPF.Données
 {
@@ -19,10 +18,12 @@ namespace OutilWPF.Données
     {
         private Context dataContext;
         private readonly IPatientRecordsService patientRecordsService;
+        private readonly IReferenceDataService referenceDataService;
         public Access()
         {
             dataContext = new Context();
             patientRecordsService = new PatientRecordsService(dataContext);
+            referenceDataService = new ReferenceDataService(dataContext);
 
             if (dataContext.Logins.Count() == 0)
             {
@@ -62,17 +63,11 @@ namespace OutilWPF.Données
 
         public IEnumerable<Lapin> GetLapinList()
         {
-            var _tmp = new List<Lapin>();
-            dataContext.Lapins.ToList().ForEach(l => _tmp.Add(l));
-
-            return _tmp;
+            return referenceDataService.GetLapinList();
         }
         public IEnumerable<Infosp> GetInfosPList()
         {
-            var _tmp = new List<Infosp>();
-            dataContext.Infosps.ToList().ForEach(l => _tmp.Add(l));
-
-            return _tmp;
+            return referenceDataService.GetInfosPList();
         }
 
         public ObservableCollection<Patient> GetPatients(string sNom, string sPrénom)
@@ -82,11 +77,7 @@ namespace OutilWPF.Données
 
         public List<string> GetLoginList()
         {
-            var _tmp = new List<string>();
-            //if (dataContext.Logins.Any())
-            dataContext.Logins.ToList().ForEach(l => _tmp.Add(l.UserName));
-
-            return _tmp;
+            return referenceDataService.GetLoginList();
         }
 
         private List<Patient> GetPatientsList()
@@ -99,10 +90,7 @@ namespace OutilWPF.Données
 
         public List<Praticien> GetPraticiensList()
         {
-            var _tmp = new List<Praticien>();
-            dataContext.Praticiens.ToList().ForEach(l => _tmp.Add(l));
-
-            return _tmp;
+            return referenceDataService.GetPraticiensList();
         }
 
         public List<string> GetPraticienList()
@@ -114,7 +102,7 @@ namespace OutilWPF.Données
 
         public Login CheckLogin(string login, string password)
         {
-            return dataContext.Logins.FirstOrDefault(p => p.UserName == login && p.PassWord == password);
+            return referenceDataService.CheckLogin(login, password);
         }
 
         public List<string> GetCivilités()

@@ -14,8 +14,6 @@ namespace OutilWPF
         private string searchSearchPatientPrénom = string.Empty;
         private Patient selectedPatient;
         private PatientSelect selectedPatientSelected;
-        private ObservableCollection<Séance> séances = new ObservableCollection<Séance>();
-        private ObservableCollection<Traitement> traitements = new ObservableCollection<Traitement>();
 
         public ObservableCollection<PatientSelect> PatientsSelectCollection
         {
@@ -38,11 +36,7 @@ namespace OutilWPF
         public Patient SelectedPatient
         {
             get { return selectedPatient; }
-            set
-            {
-                if (SetProperty(ref selectedPatient, value))
-                    UpdateSelectedPatientDetails();
-            }
+            set { SetProperty(ref selectedPatient, value); }
         }
 
         public PatientSelect SelectedPatientSelected
@@ -53,18 +47,6 @@ namespace OutilWPF
                 if (SetProperty(ref selectedPatientSelected, value))
                     SelectedPatient = value?.Patient;
             }
-        }
-
-        public ObservableCollection<Séance> Séances
-        {
-            get { return séances; }
-            set { SetProperty(ref séances, value); }
-        }
-
-        public ObservableCollection<Traitement> Traitements
-        {
-            get { return traitements; }
-            set { SetProperty(ref traitements, value); }
         }
 
         public void AttachDataService(IClinicDataService dataService)
@@ -78,15 +60,8 @@ namespace OutilWPF
                 return;
 
             SelectedPatientSelected = null;
-            SelectedPatient = null;
             var patients = dataService.GetPatients(SearchSearchPatientNom, SearchSearchPatientPrénom);
             PatientsSelectCollection = new ObservableCollection<PatientSelect>(patients.Select(p => new PatientSelect() { Patient = p }));
-
-            if (SelectedPatientSelected != null)
-            {
-                SelectedPatientSelected.Patient = null;
-                SelectedPatientSelected.IsSelected = false;
-            }
         }
 
         public Patient CreateNewPatient()
@@ -99,19 +74,6 @@ namespace OutilWPF
             SelectedPatientSelected = PatientsSelectCollection.FirstOrDefault();
 
             return patient;
-        }
-
-        private void UpdateSelectedPatientDetails()
-        {
-            if (dataService == null || SelectedPatient == null)
-            {
-                Séances = new ObservableCollection<Séance>();
-                Traitements = new ObservableCollection<Traitement>();
-                return;
-            }
-
-            Séances = dataService.GetSéances(SelectedPatient);
-            Traitements = dataService.GetTraitements(SelectedPatient);
         }
     }
 }
