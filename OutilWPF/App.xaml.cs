@@ -32,6 +32,7 @@ namespace OutilWPF
                     services.AddSingleton<IDatabasePathStore, DatabasePathStore>();
                     services.AddSingleton<IUserPreferencesStore, JsonUserPreferencesStore>();
                     services.AddSingleton<IDatabaseSelectionService, DatabaseSelectionService>();
+                    services.AddSingleton<IOfficeInteropService, OfficeInteropService>();
                     services.AddSingleton<IClinicDataService, Access>();
                     services.AddSingleton<ViewModel>();
                     services.AddSingleton<MainWindow>();
