@@ -54,26 +54,6 @@
             </Style>
         </ScrollViewer.Resources>
         <StackPanel Margin="20">
-            <Border Padding="22" CornerRadius="24" Background="#CCFFFDF8" BorderBrush="{StaticResource Brush.Border}" BorderThickness="1">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <StackPanel>
-                        <TextBlock Text="CLE Patients" FontSize="15" FontWeight="SemiBold" Foreground="{StaticResource Brush.Accent}" />
-                        <TextBlock Margin="0,6,0,0" Text="{Binding SelectedPatient.NomPrenom, TargetNullValue=Accueil cabinet}" FontSize="30" FontWeight="Bold" />
-                        <TextBlock Margin="0,4,0,0" Text="Recherche, suivi clinique, RDV Outlook et impression de fiche dans un seul cockpit." />
-                    </StackPanel>
-                    <Border Grid.Column="1" Padding="14,10" CornerRadius="18" Background="{StaticResource Brush.SurfaceStrong}">
-                        <StackPanel>
-                            <TextBlock FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource Brush.Accent}" Text="Session" />
-                            <TextBlock Margin="0,4,0,0" Text="{Binding SelectedPatient.Ville, TargetNullValue=Centre Etoile Laser}" />
-                        </StackPanel>
-                    </Border>
-                </Grid>
-            </Border>
-
             <Border Name="spLogin" Visibility="{Binding LoginVisibility, UpdateSourceTrigger=PropertyChanged}" Margin="0,24,0,0" Padding="34" MaxWidth="520" HorizontalAlignment="Center" CornerRadius="28" Background="#F7FFFDF8" BorderBrush="{StaticResource Brush.Border}" BorderThickness="1">
                 <StackPanel>
                     <TextBlock Text="Connexion" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource Brush.Accent}" />
@@ -157,8 +137,22 @@
                 </Border>
                 <Border x:Name="DetailsCard" Grid.Row="0" Grid.Column="2" Padding="18" CornerRadius="22" Background="{StaticResource Brush.Surface}" BorderBrush="{StaticResource Brush.Border}" BorderThickness="1">
                 <StackPanel>
-                    <TextBlock Text="Parcours patient" FontSize="22" FontWeight="Bold" />
-                    <TextBlock Margin="0,4,0,14" Text="Fiche, actions rapides, séances et traitements dans une même vue clinique." />
+                    <Grid Margin="0,0,0,14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Parcours patient" FontSize="22" FontWeight="Bold" />
+                            <TextBlock Margin="12,0,0,0" Text="{Binding SelectedPatient.NomPrenom, TargetNullValue=Aucun patient sélectionné}" FontSize="22" FontWeight="SemiBold" Foreground="{StaticResource Brush.Accent}" />
+                        </StackPanel>
+                        <Border Grid.Column="1" Padding="12,8" CornerRadius="16" Background="{StaticResource Brush.SurfaceStrong}">
+                            <StackPanel>
+                                <TextBlock FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource Brush.Accent}" Text="Session" />
+                                <TextBlock Margin="0,4,0,0" Text="{Binding SelectedPatient.Ville, TargetNullValue=Centre Etoile Laser}" />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
                     <WrapPanel>
                         <Button Name="VisualiserFichePatient" HorizontalAlignment="Left" Content="Imprimer la fiche patient" Command="{Binding SelectedPatientCommand}" CommandParameter="VisualiserFichePatient" Style="{StaticResource ActionButtonStyle}"/>
                         <Button Name="OpenOutlook"  HorizontalAlignment="Left" Content="Saisir un nouveau RDV dans Outlook" Command="{Binding SelectedPatientCommand}" CommandParameter="OpenOutlook" Style="{StaticResource SubtleButtonStyle}" Margin="8,0"/>
