@@ -4,6 +4,7 @@ using Prism.Mvvm;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 
@@ -11,6 +12,7 @@ namespace OutilWPF
 {
     public class ViewModel : BindableBase
     {
+        private readonly PatientWorkspace patientWorkspace;
         private Login UserConnected = null;
         public List<Tuple<string, string>> LesLogins { get; } = new List<Tuple<string, string>>();
         public List<Praticien> LesPraticiens { get; } = new List<Praticien>();
@@ -168,86 +170,41 @@ namespace OutilWPF
             }
         }
 
-        private ObservableCollection<Patient> _patients;
-        //public ObservableCollection<Patient> Patients
-        //{
-        //    get { return _patients; }
-        //    set
-        //    {
-        //        SetProperty(ref _patients, value);
-        //    }
-        //}
-        private ObservableCollection<PatientSelect> _patientsSelec = new ObservableCollection<PatientSelect>();
         public ObservableCollection<PatientSelect> PatientsSelectCollection
         {
-            get { return _patientsSelec; }
-            set
-            {
-                SetProperty(ref _patientsSelec, value);
-            }
+            get { return patientWorkspace.PatientsSelectCollection; }
+            set { patientWorkspace.PatientsSelectCollection = value; }
         }
         //public ICollectionView PatientsView
         //{
         //    get { return CollectionViewSource.GetDefaultView(Patients); }
         //}
 
-        private string searchSearchPatientNom = "";
         public string SearchSearchPatientNom
         {
-            get { return searchSearchPatientNom; }
-            set
-            {
-                SetProperty(ref searchSearchPatientNom, value);
-
-                //RefreshViewPatientsFromDataContext();
-                //PatientsView.Refresh();
-            }
+            get { return patientWorkspace.SearchSearchPatientNom; }
+            set { patientWorkspace.SearchSearchPatientNom = value; }
         }
 
-        private string searchSearchPatientPrénom = "";
         public string SearchSearchPatientPrénom
         {
-            get { return searchSearchPatientPrénom; }
-            set
-            {
-                SetProperty(ref searchSearchPatientPrénom, value);
-                //RefreshViewPatientsFromDataContext();
-
-                //PatientsView.Refresh();
-            }
+            get { return patientWorkspace.SearchSearchPatientPrénom; }
+            set { patientWorkspace.SearchSearchPatientPrénom = value; }
         }
 
         internal void FreezeSaveDataContext(bool état)
         {
             EnableSaveContext = état;
         }
-        private Patient selectedPatient;
         public Patient SelectedPatient
         {
-            get { return selectedPatient; }
-            set
-            {
-                EnableSaveContext = false;
-                SetProperty(ref selectedPatient, value);
-                EnableSaveContext = true;
-
-                SelectedpatientDatasUpdate();
-                EffacerChampsTraitement();
-                RaisePropertyChanged("AddTraitementPanelEnabled");
-                SelectedPatientCommand.RaiseCanExecuteChanged();
-            }
+            get { return patientWorkspace.SelectedPatient; }
+            set { patientWorkspace.SelectedPatient = value; }
         }
-        private PatientSelect selectedPatientSelected;
         public PatientSelect SelectedPatientSelected
         {
-            get { return selectedPatientSelected; }
-            set
-            {
-                SetProperty(ref selectedPatientSelected, value);
-                //if(value==null)
-                //    SelectedPatient=
-                SelectedPatient = value?.Patient;
-            }
+            get { return patientWorkspace.SelectedPatientSelected; }
+            set { patientWorkspace.SelectedPatientSelected = value; }
         }
 
         //private ObservableCollection<RDVOutlook> _rdvsoutlook;
@@ -260,25 +217,16 @@ namespace OutilWPF
         //    }
         //}
 
-        private ObservableCollection<Séance> _séances;
         public ObservableCollection<Séance> Séances
         {
-            get { return _séances; }
-            set
-            {
-                SetProperty(ref _séances, value);
-            }
+            get { return patientWorkspace.Séances; }
+            set { patientWorkspace.Séances = value; }
         }
 
-        private ObservableCollection<Traitement> _traitements = new ObservableCollection<Traitement>();
         public ObservableCollection<Traitement> Traitements
         {
-            get { return _traitements; }
-            set
-            {
-                SetProperty(ref _traitements, value);
-                //Séances = da.GetSéances(selectedPatient);                
-            }
+            get { return patientWorkspace.Traitements; }
+            set { patientWorkspace.Traitements = value; }
         }
 
         private List<Lapin> listLapins = new List<Lapin>();
@@ -387,12 +335,7 @@ namespace OutilWPF
 
         public void ExecutCreerNouvelleFichePatientCCommand()
         {
-            var newpatient = da.CreateNewPatient();
-            PatientsSelectCollection.Insert(0, new PatientSelect() { Patient = newpatient });
-            SelectedPatientSelected = PatientsSelectCollection.First();
-            //Patients.Insert(0, newpatient);
-            //Patients.Add(newpatient);
-            //SelectedPatient = newpatient;
+            patientWorkspace.CreateNewPatient();
         }
 
 
@@ -411,7 +354,7 @@ namespace OutilWPF
             //var = zone EditSéanceZoneTraitée
             Traitement tr = new Traitement() { ZonesTraitées = EditSéanceZoneTraitée, Fluence = EditSéanceMS_Fluence, Pulses = EditSéanceNb_Pulses, Commentaires = EditSéanceCommentaires, Prix = editSéancePrix };
 
-            da.CreateNewTraitement(selectedPatient, tr, EditSéanceSalle, EditSéanceDate);
+            da.CreateNewTraitement(SelectedPatient, tr, EditSéanceSalle, EditSéanceDate);
             Traitements.Add(tr);
             Traitements = new ObservableCollection<Traitement>(Traitements.OrderByDescending(p => p.Séance.DateSéance).ThenBy(p => p.Fluence));
             if (!Séances.Select(s => s.SéanceId).Contains(tr.Séance.SéanceId)) Séances.Add(tr.Séance);
@@ -435,17 +378,7 @@ namespace OutilWPF
 
         private void RefreshViewPatientsFromDataContext()
         {
-            var Patients = da.GetPatients(SearchSearchPatientNom, SearchSearchPatientPrénom);
-            PatientsSelectCollection = new ObservableCollection<PatientSelect>();
-            foreach (var p in Patients)
-            {
-                PatientsSelectCollection.Add(new PatientSelect() { Patient = p });
-            }
-            if (SelectedPatientSelected != null) { 
-            SelectedPatientSelected.Patient = null;
-            SelectedPatientSelected.IsSelected = false;
-                //SelectedPatient = null;
-            }
+            patientWorkspace.RefreshPatients();
             RaisePropertyChanged("SearchErrorVisibility");
         }
 
@@ -555,29 +488,29 @@ namespace OutilWPF
             da.RemoveSéance(séance);//s'occupe d'enlever les traitements de la bd
         }
 
-        private Access da = null;
+        private IClinicDataService da = null;
         public ViewModel()
         {
-
-        }
-
-        private void SelectedpatientDatasUpdate()
-        {
-            Séances = da.GetSéances(selectedPatient); /*Séances.CollectionChanged += Séances_CollectionChanged;*/
-            Traitements = da.GetTraitements(SelectedPatient); /*Traitements.CollectionChanged += Traitements_CollectionChanged;*/
+            patientWorkspace = new PatientWorkspace();
+            patientWorkspace.PropertyChanged += PatientWorkspace_PropertyChanged;
         }
 
         internal void LoadDatas(bool oui)
         {
             if (oui)
             {
-                da = new Access
-                    
-                    
-                    ();
-                foreach (var lo in da.GetLoginList())
-                    LesLogins.Add(new Tuple<string, string>(lo, lo));
-
+                try
+                {
+                    da = new Access();
+                    patientWorkspace.AttachDataService(da);
+                    foreach (var lo in da.GetLoginList())
+                        LesLogins.Add(new Tuple<string, string>(lo, lo));
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Erreur lors de l'initialisation de la base de donnees : " + ex.Message, "Centre etoile LASER", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                    Application.Current.Shutdown();
+                }
             }
             else
             {
@@ -596,14 +529,14 @@ namespace OutilWPF
         {
 
             EnableApplication = false;
-            da.NewRDVOutlook(selectedPatient);
+            da.NewRDVOutlook(SelectedPatient);
             EnableApplication = true;
         }
 
         private void VisualiserFichePatient()
         {
             EnableApplication = false;
-            da.VisualiserFichePatient(selectedPatient);
+            da.VisualiserFichePatient(SelectedPatient);
             EnableApplication = true;
         }
 
@@ -621,6 +554,23 @@ namespace OutilWPF
             EditSéanceCommentaires = null;
             EditSéancePrix = null;
             EditInfosp = null;
+        }
+
+        private void PatientWorkspace_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            RaisePropertyChanged(e.PropertyName);
+
+            if (e.PropertyName == nameof(PatientsSelectCollection))
+                RaisePropertyChanged(nameof(SearchErrorVisibility));
+
+            if (e.PropertyName == nameof(SelectedPatient))
+            {
+                EffacerChampsTraitement();
+                RaisePropertyChanged(nameof(AddTraitementPanelEnabled));
+                SelectedPatientCommand?.RaiseCanExecuteChanged();
+                SaveInfosClients?.RaiseCanExecuteChanged();
+                ExecuteCreerNouveauxTraitementCommand?.RaiseCanExecuteChanged();
+            }
         }
     }
     public class PatientSelect : BindableBase

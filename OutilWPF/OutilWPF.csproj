@@ -328,6 +328,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="PatientWorkspace.cs" />
     <Compile Include="ViewModel.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -339,7 +340,10 @@
     </Compile>
     <Compile Include="Données\Access.cs" />
     <Compile Include="Données\Context.cs" />
+    <Compile Include="Données\IClinicDataService.cs" />
+    <Compile Include="Données\IPatientRecordsService.cs" />
     <Compile Include="Données\Model.cs" />
+    <Compile Include="Données\PatientRecordsService.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>

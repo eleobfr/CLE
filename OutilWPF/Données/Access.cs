@@ -15,12 +15,14 @@ using System.Data.SqlClient;
 namespace OutilWPF.Données
 {
     public class Access : IDisposable
+        , IClinicDataService
     {
         private Context dataContext;
+        private readonly IPatientRecordsService patientRecordsService;
         public Access()
         {
             dataContext = new Context();
-            dataContext.Database.Migrate();
+            patientRecordsService = new PatientRecordsService(dataContext);
 
             if (dataContext.Logins.Count() == 0)
             {
@@ -58,14 +60,14 @@ namespace OutilWPF.Données
             //dataContext.SaveChanges();
         }
 
-        internal IEnumerable<Lapin> GetLapinList()
+        public IEnumerable<Lapin> GetLapinList()
         {
             var _tmp = new List<Lapin>();
             dataContext.Lapins.ToList().ForEach(l => _tmp.Add(l));
 
             return _tmp;
         }
-        internal IEnumerable<Infosp> GetInfosPList()
+        public IEnumerable<Infosp> GetInfosPList()
         {
             var _tmp = new List<Infosp>();
             dataContext.Infosps.ToList().ForEach(l => _tmp.Add(l));
@@ -75,9 +77,7 @@ namespace OutilWPF.Données
 
         public ObservableCollection<Patient> GetPatients(string sNom, string sPrénom)
         {
-            var _patients = dataContext.Patients.Include(p => p.Lapin).Include(p => p.Séances).OrderBy(p => p.Nom).ThenBy(p => p.Prénom).Where(p => p.Nom.ToLower().StartsWith(sNom.ToLower()) && p.Prénom.ToLower().Contains(sPrénom.ToLower()));
-            //_patients = _patients.OrderByDescending(p => p.Séances.Count);
-            return new ObservableCollection<Patient>(_patients);
+            return patientRecordsService.GetPatients(sNom, sPrénom);
         }
 
         public List<string> GetLoginList()
@@ -114,16 +114,7 @@ namespace OutilWPF.Données
 
         public Login CheckLogin(string login, string password)
         {
-            Login success = null;
-            try
-            {
-                success = dataContext.Logins.First(p => p.UserName == login && p.PassWord == password);
-            }
-            catch
-            {
-
-            }
-            return success;
+            return dataContext.Logins.FirstOrDefault(p => p.UserName == login && p.PassWord == password);
         }
 
         public List<string> GetCivilités()
@@ -133,14 +124,7 @@ namespace OutilWPF.Données
 
         public Patient CreateNewPatient()
         {
-            var np = new Patient
-            {
-                Lapin = dataContext.Lapins.First(),
-                //Infosp = dataContext.Infosps.First()
-            };
-            dataContext.Patients.Add(np);
-            dataContext.SaveChanges();
-            return np;
+            return patientRecordsService.CreateNewPatient();
         }
 
         public Séance CreateNewSéance(int patientId, string userName)
@@ -155,22 +139,7 @@ namespace OutilWPF.Données
 
         public Traitement CreateNewTraitement(Patient patient, Traitement tr, Praticien salle, DateTime dateSéance)
         {
-            //var np = new Traitement() { SéanceId = séanceId };
-            if (dataContext.Séances.Any(p => p.DateSéance == dateSéance && p.PatientId == patient.PatientId && p.Praticien.PraticienId == salle.PraticienId))
-            {
-                var sé = dataContext.Séances.First(p => p.DateSéance == dateSéance && p.PatientId == patient.PatientId && p.Praticien.PraticienId == salle.PraticienId);
-                tr.SéanceId = sé.SéanceId;
-            }
-            else
-            {
-                //var login = dataContext.Praticiens.First(p => p.UserName == userName);
-                var sé = new Séance() { PatientId = patient.PatientId, PraticienId = salle.PraticienId, DateSéance = dateSéance };
-                //np.DateSéance = DateTime.Today;
-                dataContext.Séances.Add(sé); dataContext.SaveChanges();
-                tr.Séance = sé;
-            }
-            dataContext.Traitements.Add(tr); dataContext.SaveChanges();
-            return tr;
+            return patientRecordsService.CreateNewTraitement(patient, tr, salle, dateSéance);
         }
 
         public ObservableCollection<RDVOutlook> GetRDVOulook(Patient patient)
@@ -186,24 +155,12 @@ namespace OutilWPF.Données
 
         public ObservableCollection<Séance> GetSéances(Patient patient)
         {
-            ObservableCollection<Séance> temp = new ObservableCollection<Séance>();
-            if (patient != null)
-            {
-                var _temp = dataContext.Séances.AsQueryable().OrderByDescending(p => p.DateSéance).Include(p => p.Praticien).Where(r => r.PatientId == patient.PatientId);
-                temp = new ObservableCollection<Séance>(_temp);
-            }
-            return temp;
+            return patientRecordsService.GetSéances(patient);
         }
 
         public ObservableCollection<Traitement> GetTraitements(Patient patient)
         {
-            ObservableCollection<Traitement> temp = new ObservableCollection<Traitement>();
-            if (patient != null && dataContext.Traitements.Any())
-            {
-                var _temp = dataContext.Traitements.Include(p => p.Séance).OrderByDescending(p => p.Séance.DateSéance).ThenBy(p => p.Fluence).Where(r => r.Séance.PatientId == patient.PatientId);
-                temp = new ObservableCollection<Traitement>(_temp);
-            }
-            return temp;
+            return patientRecordsService.GetTraitements(patient);
         }
 
         public void NewRDVOutlook(Patient patient)
@@ -307,7 +264,7 @@ namespace OutilWPF.Données
             dataContext.SaveChanges();
         }
 
-        internal void VisualiserFichePatient(Patient patient)
+        public void VisualiserFichePatient(Patient patient)
         {
             if (patient != null)
             {
@@ -371,16 +328,14 @@ namespace OutilWPF.Données
             }
         }
 
-        internal void RemoveSéance(Séance item)
+        public void RemoveSéance(Séance item)
         {
-            dataContext.Séances.Remove(item);
-            dataContext.SaveChanges();
+            patientRecordsService.RemoveSéance(item);
         }
 
-        internal void RemoveTraitement(Traitement item)
+        public void RemoveTraitement(Traitement item)
         {
-            dataContext.Traitements.Remove(item);
-            dataContext.SaveChanges();
+            patientRecordsService.RemoveTraitement(item);
         }
         private class PatientExcel
         {
@@ -389,7 +344,7 @@ namespace OutilWPF.Données
             public string wbName;
             public string wsName;
         }
-        internal void ImporterPatients()
+        public void ImporterPatients()
         {
 
             //string nomPrenom = "IMAMBAKSH ALL Reshma-Marie";
@@ -634,7 +589,7 @@ namespace OutilWPF.Données
             return new Tuple<string, string>(cp, ville);
         }
 
-        internal void MigrateDatas()
+        public void MigrateDatas()
         {
             //Ajout infos supplémentaires
             //var sql = "CREATE TABLE `Infosps` ( `InfospId` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, `InfosName` TEXT )";
@@ -650,7 +605,7 @@ namespace OutilWPF.Données
             //sql = "ALTER TABLE `Patients` ADD COLUMN 	`InfospID`	INTEGER  REFERENCES `Infosps`(`InfospID`)";
             //var result2 = dataContext.Database.ExecuteSqlCommand(sql);
             var sql = @" UPDATE [Patients] SET InfospID = @infospID";
-            var result = dataContext.Database.ExecuteSqlCommand(sql, new Microsoft.Data.Sqlite.SqliteParameter("@infospID", 1));
+            var result = dataContext.Database.ExecuteSqlRaw(sql, new Microsoft.Data.Sqlite.SqliteParameter("@infospID", 1));
 
             /*
             foreach (var p in dataContext.Patients)
@@ -673,10 +628,9 @@ namespace OutilWPF.Données
             }
             dataContext.SaveChanges();*/
         }
-        internal async void SaveContext()
+        public void SaveContext()
         {
-            //dataContext.SaveChanges();
-            await dataContext.SaveChangesAsync();
+            dataContext.SaveChanges();
         }
 
         #region IDisposable Support

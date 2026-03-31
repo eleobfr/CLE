@@ -10,18 +10,10 @@ namespace OutilWPF.Données
 
         public Context()
         {
-            try
+            if (!_created)
             {
-                if (!_created)
-                {
-                    Database.EnsureCreated();
-                    _created = true;
-                }
-                //Database.Migrate();
-            }
-            catch
-            {
-
+                Database.EnsureCreated();
+                _created = true;
             }
         }
         public DbSet<Login> Logins { get; set; }
