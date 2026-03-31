@@ -7,9 +7,11 @@ namespace OutilWPF.Données
     public class Context : DbContext
     {
         private static bool _created = false;
+        private readonly string databasePath;
 
-        public Context()
+        public Context(string databasePath)
         {
+            this.databasePath = databasePath;
             if (!_created)
             {
                 Database.EnsureCreated();
@@ -28,8 +30,7 @@ namespace OutilWPF.Données
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            var internalDatabasePath = Properties.Settings.Default.InternalDatabasePath;
-            var connectionStringBuilder = new SqliteConnectionStringBuilder() { DataSource = internalDatabasePath }.ToString();
+            var connectionStringBuilder = new SqliteConnectionStringBuilder() { DataSource = databasePath }.ToString();
             var connection = new SqliteConnection(connectionStringBuilder);
             optionsBuilder.UseSqlite(connection);
         }

@@ -15,6 +15,7 @@ namespace OutilWPF
         private readonly PatientWorkspace patientWorkspace;
         private readonly ReferenceDataWorkspace referenceDataWorkspace;
         private readonly TreatmentWorkspace treatmentWorkspace;
+        private readonly IClinicDataService da;
         private Login UserConnected = null;
         public List<Tuple<string, string>> LesLogins
         {
@@ -393,7 +394,7 @@ namespace OutilWPF
             else if (name == "OpenOutlook")
                 TraiterOutlookCalendar();
             else if (name == "CopyName")
-                Clipboard.SetText(SelectedPatient.NomPrenom);
+                System.Windows.Clipboard.SetText(SelectedPatient.NomPrenom);
         }
         private bool CanCopyInfosClients(string name)
         {
@@ -430,9 +431,9 @@ namespace OutilWPF
             treatmentWorkspace.DeleteSéance(séance);
         }
 
-        private IClinicDataService da = null;
-        public ViewModel()
+        public ViewModel(IClinicDataService clinicDataService)
         {
+            da = clinicDataService;
             patientWorkspace = new PatientWorkspace();
             referenceDataWorkspace = new ReferenceDataWorkspace();
             treatmentWorkspace = new TreatmentWorkspace();
@@ -447,21 +448,21 @@ namespace OutilWPF
             {
                 try
                 {
-                    da = new Access();
+                    da.Initialize();
                     patientWorkspace.AttachDataService(da);
                     treatmentWorkspace.AttachDataService(da);
                     referenceDataWorkspace.LoadLoginChoices(da);
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Erreur lors de l'initialisation de la base de donnees : " + ex.Message, "Centre etoile LASER", MessageBoxButton.OK, MessageBoxImage.Exclamation);
-                    Application.Current.Shutdown();
+                    System.Windows.MessageBox.Show("Erreur lors de l'initialisation de la base de donnees : " + ex.Message, "Centre etoile LASER", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                    System.Windows.Application.Current.Shutdown();
                 }
             }
             else
             {
-                MessageBox.Show("Erreur de base de données. L'application va se fermer", "Centre étoile LASER", MessageBoxButton.OK, MessageBoxImage.Exclamation);
-                Application.Current.Shutdown();
+                System.Windows.MessageBox.Show("Erreur de base de données. L'application va se fermer", "Centre étoile LASER", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                System.Windows.Application.Current.Shutdown();
             }
         }
 

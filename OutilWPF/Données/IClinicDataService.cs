@@ -6,6 +6,7 @@ namespace OutilWPF.Données
 {
     public interface IClinicDataService
     {
+        void Initialize();
         Login CheckLogin(string login, string password);
         List<string> GetLoginList();
         List<Praticien> GetPraticiensList();

@@ -10,25 +10,22 @@ using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using OutilWPF.Services;
+using System.Runtime.Versioning;
 
 namespace OutilWPF.Données
 {
+    [SupportedOSPlatform("windows")]
     public class Access : IDisposable
         , IClinicDataService
     {
+        private readonly IDatabasePathStore databasePathStore;
         private Context dataContext;
-        private readonly IPatientRecordsService patientRecordsService;
-        private readonly IReferenceDataService referenceDataService;
-        public Access()
+        private IPatientRecordsService patientRecordsService;
+        private IReferenceDataService referenceDataService;
+        public Access(IDatabasePathStore databasePathStore)
         {
-            dataContext = new Context();
-            patientRecordsService = new PatientRecordsService(dataContext);
-            referenceDataService = new ReferenceDataService(dataContext);
-
-            if (dataContext.Logins.Count() == 0)
-            {
-                LoadDatabaseWithFakeDatas();
-            }
+            this.databasePathStore = databasePathStore;
         }
 
         private void LoadDatabaseWithFakeDatas()
@@ -63,20 +60,24 @@ namespace OutilWPF.Données
 
         public IEnumerable<Lapin> GetLapinList()
         {
+            EnsureInitialized();
             return referenceDataService.GetLapinList();
         }
         public IEnumerable<Infosp> GetInfosPList()
         {
+            EnsureInitialized();
             return referenceDataService.GetInfosPList();
         }
 
         public ObservableCollection<Patient> GetPatients(string sNom, string sPrénom)
         {
+            EnsureInitialized();
             return patientRecordsService.GetPatients(sNom, sPrénom);
         }
 
         public List<string> GetLoginList()
         {
+            EnsureInitialized();
             return referenceDataService.GetLoginList();
         }
 
@@ -90,6 +91,7 @@ namespace OutilWPF.Données
 
         public List<Praticien> GetPraticiensList()
         {
+            EnsureInitialized();
             return referenceDataService.GetPraticiensList();
         }
 
@@ -102,6 +104,7 @@ namespace OutilWPF.Données
 
         public Login CheckLogin(string login, string password)
         {
+            EnsureInitialized();
             return referenceDataService.CheckLogin(login, password);
         }
 
@@ -112,11 +115,13 @@ namespace OutilWPF.Données
 
         public Patient CreateNewPatient()
         {
+            EnsureInitialized();
             return patientRecordsService.CreateNewPatient();
         }
 
         public Séance CreateNewSéance(int patientId, string userName)
         {
+            EnsureInitialized();
             var login = dataContext.Praticiens.First(p => p.UserName == userName);
             var np = new Séance() { PatientId = patientId, PraticienId = login.PraticienId };
             np.DateSéance = DateTime.Today;
@@ -127,11 +132,13 @@ namespace OutilWPF.Données
 
         public Traitement CreateNewTraitement(Patient patient, Traitement tr, Praticien salle, DateTime dateSéance)
         {
+            EnsureInitialized();
             return patientRecordsService.CreateNewTraitement(patient, tr, salle, dateSéance);
         }
 
         public ObservableCollection<RDVOutlook> GetRDVOulook(Patient patient)
         {
+            EnsureInitialized();
             ObservableCollection<RDVOutlook> rdvsoutlook = null;
             if (patient != null)
             {
@@ -143,37 +150,21 @@ namespace OutilWPF.Données
 
         public ObservableCollection<Séance> GetSéances(Patient patient)
         {
+            EnsureInitialized();
             return patientRecordsService.GetSéances(patient);
         }
 
         public ObservableCollection<Traitement> GetTraitements(Patient patient)
         {
+            EnsureInitialized();
             return patientRecordsService.GetTraitements(patient);
         }
 
         public void NewRDVOutlook(Patient patient)
         {
+            EnsureInitialized();
             if (patient == null) return;
-            Outlook.Application outlookApp = null;
-
-            //var items = value.Split('|');
-            try
-            {
-                outlookApp = System.Runtime.InteropServices.Marshal.GetActiveObject("Outlook.Application") as Outlook.Application;
-            }
-            catch
-            {
-                Process.Start("outlook", "/select outlook:calendar");
-                System.Threading.Thread.Sleep(1000);
-                try
-                {
-                    outlookApp = System.Runtime.InteropServices.Marshal.GetActiveObject("Outlook.Application") as Outlook.Application;
-                }
-                catch
-                {
-                    outlookApp = new Outlook.Application();
-                }
-            }
+            var outlookApp = new Outlook.Application();
 
             Outlook.AppointmentItem oAppointment = (Outlook.AppointmentItem)outlookApp.CreateItem(Outlook.OlItemType.olAppointmentItem);
             oAppointment.Subject = patient.NomPrenom;
@@ -186,26 +177,12 @@ namespace OutilWPF.Données
 
         public void UpdateRDVOutlook()
         {
+            EnsureInitialized();
             var OutlookRdvs = new List<RDVOutlook>();
             var listPatients = GetPatientsList();
             var listPraticiens = GetPraticiensList();
 
-            Outlook.Application outlookApp = null;
-
-            //var items = value.Split('|');
-            try
-            {
-                outlookApp = System.Runtime.InteropServices.Marshal.GetActiveObject("Outlook.Application") as Outlook.Application;
-                //Console.WriteLine("Active");
-            }
-            catch
-            {
-                outlookApp = new Outlook.Application();
-                //var folder = outlookApp.Session.GetDefaultFolder(Outlook.OlDefaultFolders.olFolderCalendar);
-                //folder.Display();
-                //System.Runtime.InteropServices.Marshal.ReleaseComObject(folder);
-                //folder = null;
-            }
+            var outlookApp = new Outlook.Application();
             Outlook.Folder calFolder = outlookApp.Session.GetDefaultFolder(Outlook.OlDefaultFolders.olFolderCalendar) as Outlook.Folder;
             Outlook.Items outlookCalendarItems = calFolder.Items;
 
@@ -254,6 +231,7 @@ namespace OutilWPF.Données
 
         public void VisualiserFichePatient(Patient patient)
         {
+            EnsureInitialized();
             if (patient != null)
             {
                 var _patient = dataContext.Patients.Include(p => p.Séances).ThenInclude(p => p.Traitements).First(p => p.PatientId == patient.PatientId);
@@ -268,7 +246,7 @@ namespace OutilWPF.Données
                     Visible = true
                 };
                 var wb = eap.Workbooks.Add(templatePath);
-                Excel.Worksheet ws = wb.Worksheets[1];
+                dynamic ws = wb.Worksheets[1];
                 ws.Range["B2"].Value = string.Format("{0}", patient.NomPrenom);
                 ws.Range["B3"].Value = string.Format("{0}", patient.Adresse1);
                 ws.Range["B4"].Value = string.Format("{0} {1}", patient.CodePostal, patient.Ville);
@@ -279,7 +257,7 @@ namespace OutilWPF.Données
                     foreach (var traitement in seance.Traitements.OrderBy(p => p.Fluence))
                     {
                         ws.Cells[nr, 1].Value = seance.DateSéance;
-                        Excel.Range zt = ws.Cells[nr, 2];
+                        dynamic zt = ws.Cells[nr, 2];
                         zt.Value = string.Format("{0}", traitement.ZonesTraitées); zt.WrapText = true;
                         if (traitement.ZonesTraitées?.Contains("lapin") ?? false)
                         {
@@ -291,7 +269,7 @@ namespace OutilWPF.Données
                         ws.Cells[nr, 6].Value = string.Format("{0}", traitement.Commentaires); ws.Cells[nr, 6].WrapText = true;
                         nr++;
                     }
-                var rang = ws.Range[string.Format("A7:F{0}", nr - 1)];
+                dynamic rang = ws.Range[string.Format("A7:F{0}", nr - 1)];
                 rang.Borders[Excel.XlBordersIndex.xlEdgeLeft].LineStyle = Excel.XlLineStyle.xlContinuous;
                 rang.Borders[Excel.XlBordersIndex.xlEdgeRight].LineStyle = Excel.XlLineStyle.xlContinuous;
                 rang.Borders[Excel.XlBordersIndex.xlEdgeTop].LineStyle = Excel.XlLineStyle.xlContinuous;
@@ -318,11 +296,13 @@ namespace OutilWPF.Données
 
         public void RemoveSéance(Séance item)
         {
+            EnsureInitialized();
             patientRecordsService.RemoveSéance(item);
         }
 
         public void RemoveTraitement(Traitement item)
         {
+            EnsureInitialized();
             patientRecordsService.RemoveTraitement(item);
         }
         private class PatientExcel
@@ -334,6 +314,7 @@ namespace OutilWPF.Données
         }
         public void ImporterPatients()
         {
+            EnsureInitialized();
 
             //string nomPrenom = "IMAMBAKSH ALL Reshma-Marie";
             var pathFichestoImport = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "FICHES PATIENTS");
@@ -350,8 +331,9 @@ namespace OutilWPF.Données
                     };
 
                     var wb = eap.Workbooks.Open(fiche, ReadOnly: true);
-                    foreach (Excel.Worksheet ws in wb.Worksheets)
+                    foreach (var worksheet in wb.Worksheets)
                     {
+                        dynamic ws = worksheet;
                         //PatientExcel fp = null;
                         //if (patientNames.Any(p => p.wsName.ToLower().Contains(ws.Name.ToLower())))
                         //{
@@ -364,7 +346,7 @@ namespace OutilWPF.Données
                             nd = 6;
                         if (nd != 0)
                         {
-                            using (var ctx = new Context())
+                            using (var ctx = new Context(databasePathStore.CurrentPath))
                             {
                                 string nom_Prenom = Convert.ToString(ws.Cells[nd, 2].Value);
                                 string adresse = Convert.ToString(ws.Cells[nd + 1, 2].Value);
@@ -392,7 +374,7 @@ namespace OutilWPF.Données
                                 //}
                                 ctx.Patients.Add(patient); ctx.SaveChanges();
 
-                                var nrows = Math.Max(ws.Range["A" + ws.Rows.Count].End[Excel.XlDirection.xlUp].Row, ws.Range["B" + ws.Rows.Count].End[Excel.XlDirection.xlUp].Row);
+                                var nrows = Math.Max((int)ws.Range["A" + ws.Rows.Count].End[Excel.XlDirection.xlUp].Row, (int)ws.Range["B" + ws.Rows.Count].End[Excel.XlDirection.xlUp].Row);
                                 nrows = Math.Max(nrows, ws.Range["C" + ws.Rows.Count].End[Excel.XlDirection.xlUp].Row);
                                 nrows = Math.Max(nrows, ws.Range["D" + ws.Rows.Count].End[Excel.XlDirection.xlUp].Row);
                                 nrows = Math.Max(nrows, ws.Range["E" + ws.Rows.Count].End[Excel.XlDirection.xlUp].Row);
@@ -486,23 +468,25 @@ namespace OutilWPF.Données
                     Visible = true
                 };
                 var wba = ea.Workbooks.Open(Path.Combine(pathFichestoImport, "ALPHA", "Liste alphabétique.xls"), ReadOnly: true);
-                foreach (Excel.Worksheet ws in wba.Worksheets)
+                foreach (var worksheet in wba.Worksheets)
+                {
+                    dynamic ws = worksheet;
                     foreach (var l in lcol)
                     {
-                        var nrows = ws.Cells[ws.Rows.Count, l].End[Excel.XlDirection.xlUp].Row;
+                        var nrows = (int)ws.Cells[ws.Rows.Count, l].End[Excel.XlDirection.xlUp].Row;
                         for (var nr = 2; nr <= nrows; nr++)
                         {
                             var pe = new PatientExcel();
-                            Excel.Range ce = ws.Cells[nr, l];
+                            dynamic ce = ws.Cells[nr, l];
 
-                            pe.nomPrenom = ce.Value;
+                            pe.nomPrenom = Convert.ToString(ce.Value);
                             if (ce.Hyperlinks.Count > 0)
                             {
-                                Excel.Hyperlink Hyper = ce.Hyperlinks.Item[1];
+                                dynamic Hyper = ce.Hyperlinks.Item[1];
                                 pe.wbName = Hyper.Address;
                                 pe.wsName = Hyper.SubAddress;
                             }
-                            var colo = ce.Interior.Color;
+                            var colo = Convert.ToInt32(ce.Interior.Color);
                             if (colo == 49407)
                                 pe.couleur = "J";
                             else if (colo == 255)
@@ -517,6 +501,7 @@ namespace OutilWPF.Données
                                 patientNames.Add(pe);
                         }
                     }
+                }
 
                 wba.Close(); ; wba = null;
                 ea.Quit();
@@ -579,6 +564,7 @@ namespace OutilWPF.Données
 
         public void MigrateDatas()
         {
+            EnsureInitialized();
             //Ajout infos supplémentaires
             //var sql = "CREATE TABLE `Infosps` ( `InfospId` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, `InfosName` TEXT )";
             //var result = dataContext.Database.ExecuteSqlCommand(sql);
@@ -618,7 +604,29 @@ namespace OutilWPF.Données
         }
         public void SaveContext()
         {
+            EnsureInitialized();
             dataContext.SaveChanges();
+        }
+
+        public void Initialize()
+        {
+            EnsureInitialized();
+        }
+
+        private void EnsureInitialized()
+        {
+            if (dataContext != null)
+                return;
+
+            if (string.IsNullOrWhiteSpace(databasePathStore.CurrentPath))
+                throw new InvalidOperationException("Le chemin de la base de donnees n'est pas configure.");
+
+            dataContext = new Context(databasePathStore.CurrentPath);
+            patientRecordsService = new PatientRecordsService(dataContext);
+            referenceDataService = new ReferenceDataService(dataContext);
+
+            if (dataContext.Logins.Count() == 0)
+                LoadDatabaseWithFakeDatas();
         }
 
         #region IDisposable Support
