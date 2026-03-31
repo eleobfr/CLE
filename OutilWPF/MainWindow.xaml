@@ -5,7 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OutilWPF"
         mc:Ignorable="d"
-        Title="CLE Patients" Height="1261" Width="1347" MinHeight="900" MinWidth="1320" WindowStartupLocation="CenterScreen" WindowState="Maximized">
+        Title="CLE Patients" Height="1261" Width="1347" MinHeight="860" MinWidth="980" WindowStartupLocation="CenterScreen" WindowState="Maximized"
+        SizeChanged="MainWindow_SizeChanged">
     <ScrollViewer IsEnabled="{Binding EnableApplication, UpdateSourceTrigger=PropertyChanged}" VerticalScrollBarVisibility="Auto">
         <ScrollViewer.Resources>
             <Style x:Key="HyperLinkButtonStyle" TargetType="Button">
@@ -52,16 +53,16 @@
                 </Grid>
             </Border>
 
-            <Border Name="spLogin" Visibility="{Binding LoginVisibility, UpdateSourceTrigger=PropertyChanged}" Margin="0,24,0,0" Padding="34" Width="520" HorizontalAlignment="Center" CornerRadius="28" Background="#F7FFFDF8" BorderBrush="{StaticResource Brush.Border}" BorderThickness="1">
+            <Border Name="spLogin" Visibility="{Binding LoginVisibility, UpdateSourceTrigger=PropertyChanged}" Margin="0,24,0,0" Padding="34" MaxWidth="520" HorizontalAlignment="Center" CornerRadius="28" Background="#F7FFFDF8" BorderBrush="{StaticResource Brush.Border}" BorderThickness="1">
                 <StackPanel>
                     <TextBlock Text="Connexion" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource Brush.Accent}" />
                     <TextBlock Text="Accéder au cockpit patient" FontSize="32" FontWeight="Bold" Margin="0,8,0,0" TextAlignment="Center"/>
                     <TextBlock Margin="0,10,0,0" Text="Choisissez un profil puis ouvrez la base commune pour démarrer la session." TextAlignment="Center" TextWrapping="Wrap"/>
                     <TextBlock x:Name="ErrorMessage" Text="" FontSize="16" Margin="0,16,0,0" Foreground="Red" TextAlignment="Center"/>
                     <TextBlock Margin="0,18,0,6" Text="Profil" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource Brush.Accent}" />
-                    <ComboBox x:Name="cbLogin" ItemsSource="{Binding LesLogins}" DisplayMemberPath="Item1" SelectedValuePath="Item2" Width="300" HorizontalAlignment="Center"/>
+                    <ComboBox x:Name="cbLogin" ItemsSource="{Binding LesLogins}" DisplayMemberPath="Item1" SelectedValuePath="Item2" MinWidth="260" MaxWidth="320" HorizontalAlignment="Center"/>
                     <TextBlock Margin="0,18,0,6" Text="Mot de passe" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource Brush.Accent}" />
-                    <PasswordBox  x:Name="password" Width="300" HorizontalAlignment="Center" />
+                    <PasswordBox  x:Name="password" MinWidth="260" MaxWidth="320" HorizontalAlignment="Center" />
                     <WrapPanel HorizontalAlignment="Center" Margin="0,24,0,0">
                         <Button Name="Valider" Content="Se connecter" Width="140" HorizontalAlignment="Center" Margin="0" Click="Valider_Click" Style="{StaticResource ActionButtonStyle}" />
                         <Button Name="Importer" Content="Importer" Width="110" HorizontalAlignment="Center" Margin="10,0,0,0" Click="Importer_Click" Visibility="Collapsed" Style="{StaticResource SubtleButtonStyle}" />
@@ -70,14 +71,24 @@
                 </StackPanel>
             </Border>
 
-            <StackPanel Name="spWork" Visibility="{Binding SpWorkVisibility, UpdateSourceTrigger=PropertyChanged}" Orientation="Horizontal" Margin="0,24,0,0">
-                <Border Margin="0,0,18,0" Padding="18" CornerRadius="22" Background="{StaticResource Brush.Surface}" BorderBrush="{StaticResource Brush.Border}" BorderThickness="1">
-                <StackPanel Width="350">
+            <Grid Name="spWork" Visibility="{Binding SpWorkVisibility, UpdateSourceTrigger=PropertyChanged}" Margin="0,24,0,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition x:Name="WorkRowTop" Height="Auto" />
+                    <RowDefinition x:Name="WorkRowBottom" Height="0" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition x:Name="WorkColumnLeft" Width="330" />
+                    <ColumnDefinition Width="18" />
+                    <ColumnDefinition x:Name="WorkColumnRight" Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Border x:Name="PatientsCard" Grid.Row="0" Grid.Column="0" Padding="18" CornerRadius="22" Background="{StaticResource Brush.Surface}" BorderBrush="{StaticResource Brush.Border}" BorderThickness="1">
+                <StackPanel MinWidth="280">
                     <TextBlock Text="Patients" FontSize="22" FontWeight="Bold" />
                     <TextBlock Margin="0,4,0,10" Text="Recherche rapide et sélection de la fiche active." />
                     <Button Name="CréerNewFichePatient" HorizontalAlignment="Center" Margin="0,10,0,0" Content="Créer une nouvelle fiche patient" Click="CréerNewFichePatient_Click" Visibility="{Binding InfoPatientEditVisibility, UpdateSourceTrigger=PropertyChanged}" Background="LightSkyBlue"/>
                     <Label Content="Aucun enregistrement n'a été trouvé" HorizontalAlignment="Center" Foreground="Red" FontWeight="Bold" Visibility="{Binding SearchErrorVisibility, UpdateSourceTrigger=PropertyChanged}"/>
-                    <DataGrid Name="ViewPatients" ItemsSource="{Binding PatientsSelectCollection, UpdateSourceTrigger=PropertyChanged}" Margin="10,10"  CanUserAddRows="False" Height="600" CanUserDeleteRows="False"  
+                    <DataGrid Name="ViewPatients" ItemsSource="{Binding PatientsSelectCollection, UpdateSourceTrigger=PropertyChanged}" Margin="10,10"  CanUserAddRows="False" Height="560" CanUserDeleteRows="False"  
                           SelectionMode="Single" ScrollViewer.VerticalScrollBarVisibility="Auto" AutoGenerateColumns="False" SelectedItem="{Binding SelectedPatientSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                         <DataGrid.Columns>
                             <DataGridCheckBoxColumn Header="Panier" Binding="{Binding IsSelected}" />
@@ -123,17 +134,17 @@
                     </DataGrid>
                 </StackPanel>
                 </Border>
-                <Border Padding="18" CornerRadius="22" Background="{StaticResource Brush.Surface}" BorderBrush="{StaticResource Brush.Border}" BorderThickness="1">
-                <StackPanel Width="1040">
+                <Border x:Name="DetailsCard" Grid.Row="0" Grid.Column="2" Padding="18" CornerRadius="22" Background="{StaticResource Brush.Surface}" BorderBrush="{StaticResource Brush.Border}" BorderThickness="1">
+                <StackPanel>
                     <TextBlock Text="Parcours patient" FontSize="22" FontWeight="Bold" />
                     <TextBlock Margin="0,4,0,14" Text="Fiche, actions rapides, séances et traitements dans une même vue clinique." />
-                    <StackPanel Orientation="Horizontal">
+                    <WrapPanel>
                         <Button Name="VisualiserFichePatient" HorizontalAlignment="Left" Content="Imprimer la fiche patient" Command="{Binding SelectedPatientCommand}" CommandParameter="VisualiserFichePatient" Style="{StaticResource ActionButtonStyle}"/>
                         <Button Name="OpenOutlook"  HorizontalAlignment="Left" Content="Saisir un nouveau RDV dans Outlook" Command="{Binding SelectedPatientCommand}" CommandParameter="OpenOutlook" Style="{StaticResource SubtleButtonStyle}" Margin="8,0"/>
                         <Button Name="CopyName"  HorizontalAlignment="Left" Content="Copier NOM Prénom" Command="{Binding SelectedPatientCommand}" CommandParameter="CopyName" Style="{StaticResource SubtleButtonStyle}" Margin="8,0"/>
-                    </StackPanel>
+                    </WrapPanel>
                     <StackPanel  Margin="10">
-                        <Grid Width="800" HorizontalAlignment="Left">
+                        <Grid HorizontalAlignment="Stretch">
                             <Grid.RowDefinitions>
                                 <RowDefinition />
                                 <RowDefinition />
@@ -143,11 +154,11 @@
                                 <RowDefinition />
                             </Grid.RowDefinitions>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition />
-                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="150" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="150" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="0" />
                                 <!--<ColumnDefinition />-->
                             </Grid.ColumnDefinitions>
 
@@ -256,11 +267,20 @@
                         </Grid>
                     </StackPanel>
                     <Separator Height="2"/>
-                    <StackPanel Orientation="Horizontal" Width="Auto" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="0,10">
-                        <StackPanel>
+                    <Grid Name="ClinicalLayoutGrid" Margin="0,10,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition x:Name="ClinicalRowTop" Height="Auto" />
+                            <RowDefinition x:Name="ClinicalRowBottom" Height="0" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition x:Name="ClinicalColumnLeft" Width="320" />
+                            <ColumnDefinition Width="18" />
+                            <ColumnDefinition x:Name="ClinicalColumnRight" Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel x:Name="SessionsPanel" Grid.Row="0" Grid.Column="0">
                             <Label Content="Listes des séances" FontWeight="Bold"/>
                             <DataGrid Name="ViewSéances" ItemsSource="{Binding Séances, UpdateSourceTrigger=PropertyChanged}" CanUserDeleteRows="False"
-                                  CanUserAddRows="false" AutoGenerateColumns="False" Height="500"  VerticalAlignment="Top" SelectionMode="Single" Width="Auto" RowEditEnding="ViewSéances_RowEditEnding"
+                                  CanUserAddRows="false" AutoGenerateColumns="False" Height="420"  VerticalAlignment="Top" SelectionMode="Single" Width="Auto" RowEditEnding="ViewSéances_RowEditEnding"
                                   ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Auto">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="Date" Binding="{Binding DateSéance, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:dd/MM/yyyy}}"/>
@@ -283,7 +303,7 @@
                                 </DataGrid.Columns>
                             </DataGrid>
                         </StackPanel>
-                        <StackPanel Margin="8,0" VerticalAlignment="Top">
+                        <StackPanel x:Name="TreatmentsPanel" Grid.Row="0" Grid.Column="2" Margin="0" VerticalAlignment="Top">
                             <StackPanel  Orientation="Vertical" IsEnabled="{Binding AddTraitementPanelEnabled , UpdateSourceTrigger=PropertyChanged}">
                                 <Grid>
                                     <Grid.RowDefinitions>
@@ -291,36 +311,36 @@
                                         <RowDefinition />
                                     </Grid.RowDefinitions>
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="100" />
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="150" />
-                                        <ColumnDefinition Width="60" />
-                                        <ColumnDefinition Width="100" />
+                                        <ColumnDefinition Width="120" />
+                                        <ColumnDefinition Width="120" />
+                                        <ColumnDefinition Width="2*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="2*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="1.4*" />
                                     </Grid.ColumnDefinitions>
                                     <Label Grid.Row="0" Grid.Column="0" Content="Date séance" Background="LightGreen"/>
-                                    <DatePicker x:Name="EditSéanceDate" Grid.Row="1" Grid.Column="0"  Width="Auto" HorizontalAlignment="Left" SelectedDate="{Binding EditSéanceDate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                                    <Label Grid.Row="0" Grid.Column="1" Content="Salle" Background="LightGreen"/>
-                                    <ComboBox x:Name="EditSéanceSalle" Grid.Row="1" Grid.Column="1" ItemsSource="{Binding LesPraticiens}" DisplayMemberPath="UserName" SelectedValuePath="UserName" SelectedItem="{Binding EditSéanceSalle, Mode=TwoWay , UpdateSourceTrigger=PropertyChanged}" Width="80" Height="30" HorizontalAlignment="Left" Loaded="EditSéanceSalle_Loaded"/>
+                                    <DatePicker x:Name="EditSéanceDate" Grid.Row="1" Grid.Column="0" SelectedDate="{Binding EditSéanceDate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <Label Grid.Row="0" Grid.Column="1" Margin="8,0,0,0" Content="Salle" Background="LightGreen"/>
+                                    <ComboBox x:Name="EditSéanceSalle" Grid.Row="1" Grid.Column="1" Margin="8,0,0,0" ItemsSource="{Binding LesPraticiens}" DisplayMemberPath="UserName" SelectedValuePath="UserName" SelectedItem="{Binding EditSéanceSalle, Mode=TwoWay , UpdateSourceTrigger=PropertyChanged}" Loaded="EditSéanceSalle_Loaded"/>
                                     <Label Grid.Row="0" Grid.Column="2" Content="Zone Traitée(*)" Background="LightGreen"/>
-                                    <TextBox x:Name="EditSéanceZoneTraitée" Grid.Row="1" Grid.Column="2" Margin="8" Text="{Binding EditSéanceZoneTraitée, Mode=TwoWay , UpdateSourceTrigger=PropertyChanged}"/>
+                                    <TextBox x:Name="EditSéanceZoneTraitée" Grid.Row="1" Grid.Column="2" Margin="8,0,0,0" Text="{Binding EditSéanceZoneTraitée, Mode=TwoWay , UpdateSourceTrigger=PropertyChanged}"/>
                                     <Label Grid.Row="0" Grid.Column="3"  Content="Fluence(*)" Background="LightGreen"/>
-                                    <TextBox x:Name="EditSéanceMS_Fluence" Grid.Row="1" Grid.Column="3"  Margin="8" Text="{Binding EditSéanceMS_Fluence, Mode=TwoWay , UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBox x:Name="EditSéanceMS_Fluence" Grid.Row="1" Grid.Column="3"  Margin="8,0,0,0" Text="{Binding EditSéanceMS_Fluence, Mode=TwoWay , UpdateSourceTrigger=PropertyChanged}" />
                                     <Label Grid.Row="0" Grid.Column="4" Content="Pulses(*)" Background="LightGreen"/>
-                                    <TextBox x:Name="EditSéanceNb_Pulses" Grid.Row="1" Grid.Column="4" Margin="8" Text="{Binding EditSéanceNb_Pulses, Mode=TwoWay , UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBox x:Name="EditSéanceNb_Pulses" Grid.Row="1" Grid.Column="4" Margin="8,0,0,0" Text="{Binding EditSéanceNb_Pulses, Mode=TwoWay , UpdateSourceTrigger=PropertyChanged}" />
                                     <Label Grid.Row="0" Grid.Column="5" Content="Commentaires" Background="LightGreen"/>
-                                    <TextBox x:Name="EditSéanceCommentaires" Grid.Row="1" Grid.Column="5"  Margin="8" TextWrapping="Wrap" AcceptsReturn="True" Text="{Binding EditSéanceCommentaires, Mode=TwoWay , UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBox x:Name="EditSéanceCommentaires" Grid.Row="1" Grid.Column="5"  Margin="8,0,0,0" TextWrapping="Wrap" AcceptsReturn="True" Text="{Binding EditSéanceCommentaires, Mode=TwoWay , UpdateSourceTrigger=PropertyChanged}" />
                                     <Label Grid.Row="0" Grid.Column="6" Content="Prix" Background="LightGreen"/>
-                                    <TextBox x:Name="EditSéancePrix" Grid.Row="1" Grid.Column="6" Margin="8" Text="{Binding EditSéancePrix, Mode=TwoWay , UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBox x:Name="EditSéancePrix" Grid.Row="1" Grid.Column="6" Margin="8,0,0,0" Text="{Binding EditSéancePrix, Mode=TwoWay , UpdateSourceTrigger=PropertyChanged}" />
                                     <Label Grid.Row="0" Grid.Column="7" Content="Infos+" Background="LightGreen"/>
-                                    <ComboBox x:Name="EditPatientInfosp" Grid.Row="1" Grid.Column="7" ItemsSource="{Binding ListInfosp, UpdateSourceTrigger=PropertyChanged}" DisplayMemberPath="InfosName" SelectedItem="{Binding EditInfosp, Mode=TwoWay,  UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding InfoPatientEditVisibility, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <ComboBox x:Name="EditPatientInfosp" Grid.Row="1" Grid.Column="7" Margin="8,0,0,0" ItemsSource="{Binding ListInfosp, UpdateSourceTrigger=PropertyChanged}" DisplayMemberPath="InfosName" SelectedItem="{Binding EditInfosp, Mode=TwoWay,  UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding InfoPatientEditVisibility, UpdateSourceTrigger=PropertyChanged}"/>
                                 </Grid>
-                                <Button Name="AddNewTraitement" Content="Ajouter cette ligne de traitement" Command="{Binding ExecuteCreerNouveauxTraitementCommand}" Width="Auto" Margin="0,8" HorizontalAlignment="Left"  Background="LightSkyBlue"/>
+                                <Button Name="AddNewTraitement" Content="Ajouter cette ligne de traitement" Command="{Binding ExecuteCreerNouveauxTraitementCommand}" Width="Auto" Margin="0,8" HorizontalAlignment="Left" Style="{StaticResource ActionButtonStyle}"/>
                             </StackPanel>
                             <DataGrid Name="ViewListeTraitement" ItemsSource="{Binding Traitements, UpdateSourceTrigger=PropertyChanged}"
-                                          Margin="0,8" CanUserAddRows="False" AutoGenerateColumns="False" Height="600" Width="850"  CanUserDeleteRows="False" RowEditEnding="ViewListeTraitement_RowEditEnding"
+                                          Margin="0,8" CanUserAddRows="False" AutoGenerateColumns="False" Height="520"  CanUserDeleteRows="False" RowEditEnding="ViewListeTraitement_RowEditEnding"
                                           SelectionMode="Single" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Auto">
                                 <DataGrid.Resources>
                                     <Style TargetType="{x:Type TextBlock}" x:Key="WrapText">
@@ -343,12 +363,12 @@
                                     </Style>
                                 </DataGrid.CellStyle>
                                 <DataGrid.Columns>
-                                    <DataGridTextColumn Header="Date" IsReadOnly="True" Binding="{Binding Séance.DateSéance, Mode=TwoWay, StringFormat={}{0:dd/MM/yyyy}, UpdateSourceTrigger=PropertyChanged}"/>
-                                    <DataGridTextColumn Header="Zones traitées" Width="200" ElementStyle="{StaticResource WrapText}" Binding="{Binding ZonesTraitées, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                                    <DataGridTextColumn Header="Fluence" Binding="{Binding Fluence, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                                    <DataGridTextColumn Header="Pulses" Binding="{Binding Pulses, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                                    <DataGridTextColumn Header="Prix" Binding="{Binding Prix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                                    <DataGridTextColumn Header="Commentaires" Width="150" ElementStyle="{StaticResource WrapText}"  Binding="{Binding Commentaires, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <DataGridTextColumn Header="Date" Width="110" IsReadOnly="True" Binding="{Binding Séance.DateSéance, Mode=TwoWay, StringFormat={}{0:dd/MM/yyyy}, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <DataGridTextColumn Header="Zones traitées" Width="2*" ElementStyle="{StaticResource WrapText}" Binding="{Binding ZonesTraitées, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <DataGridTextColumn Header="Fluence" Width="*" Binding="{Binding Fluence, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <DataGridTextColumn Header="Pulses" Width="*" Binding="{Binding Pulses, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <DataGridTextColumn Header="Prix" Width="*" Binding="{Binding Prix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <DataGridTextColumn Header="Commentaires" Width="2*" ElementStyle="{StaticResource WrapText}"  Binding="{Binding Commentaires, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                                     <DataGridTemplateColumn Header="Actions" IsReadOnly="True" >
                                         <DataGridTemplateColumn.CellTemplate >
                                             <DataTemplate >
@@ -362,10 +382,10 @@
                                 </DataGrid.Columns>
                             </DataGrid>
                         </StackPanel>
-                    </StackPanel>
+                    </Grid>
                 </StackPanel>
                 </Border>
-            </StackPanel>
+            </Grid>
         </StackPanel>
     </ScrollViewer>
 </Window>
