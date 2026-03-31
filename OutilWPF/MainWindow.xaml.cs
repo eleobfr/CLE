@@ -117,6 +117,8 @@ namespace OutilWPF
             Grid.SetColumn(TreatmentsPanel, stackClinicalPanels ? 0 : 2);
             Grid.SetRow(TreatmentsPanel, stackClinicalPanels ? 1 : 0);
             TreatmentsPanel.Margin = stackClinicalPanels ? new Thickness(0, 18, 0, 0) : new Thickness(0);
+
+            PatientSectionsGrid.Columns = ActualWidth < 1560 ? 1 : 2;
         }
     }
 }
