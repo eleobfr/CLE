@@ -1,8 +1,11 @@
-﻿using Prism.Mvvm;
+using Prism.Mvvm;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Windows.Media;
+using Brush = System.Windows.Media.Brush;
+using Color = System.Windows.Media.Color;
+using Colors = System.Windows.Media.Colors;
+using SolidColorBrush = System.Windows.Media.SolidColorBrush;
 
 namespace OutilWPF.Données
 {
@@ -22,52 +25,45 @@ namespace OutilWPF.Données
         private string nom;
         private string prénom;
         private bool tarifRéduit;
-        //private Brush couleurLapin;
+
         public string Nom
         {
             get { return nom; }
-            set
-            {
-                SetProperty(ref nom, value);
-            }
+            set { SetProperty(ref nom, value); }
         }
 
         public string Prénom
         {
             get { return prénom; }
-            set
-            {
-                SetProperty(ref prénom, value);
-            }
+            set { SetProperty(ref prénom, value); }
         }
+
         public string Civilité { get; set; }
         public string Adresse1 { get; set; }
         public string Adresse2 { get; set; }
         public string CodePostal { get; set; }
         public string Ville { get; set; }
+
         [Phone]
         [Display(Name = "Téléphone portable")]
         public string TelephonePortable { get; set; }
 
         public string Commentaires { get; set; }
-
         public string AncienneFiche { get; set; }
 
         public bool TarifRéduit
         {
             get { return tarifRéduit; }
-            set
-            {
-                SetProperty(ref tarifRéduit, value);
-            }
+            set { SetProperty(ref tarifRéduit, value); }
         }
 
         public Brush CouleurLapin
         {
             get
             {
-                var color = Lapin.LapinColor;
+                var color = Lapin?.LapinColor;
                 Color co = Colors.Transparent;
+
                 if (color == "J")
                     co = Colors.Orange;
                 else if (color == "R")
@@ -79,11 +75,10 @@ namespace OutilWPF.Données
                 else if (color == "BLACK")
                     co = Colors.Black;
 
-                Brush couleurLapin = new SolidColorBrush(co);
-
-                return couleurLapin;
+                return new SolidColorBrush(co);
             }
         }
+
         private int lapinID;
         public int LapinId
         {
@@ -94,11 +89,8 @@ namespace OutilWPF.Données
                 RaisePropertyChanged("CouleurLapin");
             }
         }
+
         public virtual Lapin Lapin { get; set; }
-
-        //public int InfospID { get; set; }
-
-        //public virtual Infosp Infosp { get; set; }
         public virtual ICollection<Séance> Séances { get; set; }
         public virtual ICollection<RDVOutlook> RDVsOutlook { get; set; }
 
@@ -112,30 +104,23 @@ namespace OutilWPF.Données
     {
         [Key]
         public int SéanceId { get; set; }
-        //public DateTime DateSéance { get; set; }
+
         private DateTime dateSéance;
         public DateTime DateSéance
         {
             get { return dateSéance; }
-            set
-            {
-                SetProperty(ref dateSéance, value);
-            }
+            set { SetProperty(ref dateSéance, value); }
         }
 
         public int PatientId { get; set; }
         public virtual Patient Patient { get; set; }
         public int PraticienId { get; set; }
-        //public virtual Praticien Praticien { get; set; }
 
-        private Praticien praticien ;
+        private Praticien praticien;
         public virtual Praticien Praticien
         {
             get { return praticien; }
-            set
-            {
-                SetProperty(ref praticien, value);
-            }
+            set { SetProperty(ref praticien, value); }
         }
 
         public virtual ICollection<Traitement> Traitements { get; set; }
@@ -161,12 +146,14 @@ namespace OutilWPF.Données
         public int PraticienId { get; set; }
         public string Nom { get; set; }
         public string Prénom { get; set; }
+
         [Required]
         public string UserName { get; set; }
 
         public virtual ICollection<Séance> Séances { get; set; }
         public virtual ICollection<RDVOutlook> RDVOutlooks { get; set; }
     }
+
     public class Traitement : BindableBase
     {
         [Key]
@@ -177,49 +164,35 @@ namespace OutilWPF.Données
         private string pulses;
         private string commentaires;
         private string prix;
+
         public string ZonesTraitées
         {
             get { return zonestraitées; }
-            set
-            {
-                SetProperty(ref zonestraitées, value);
-            }
+            set { SetProperty(ref zonestraitées, value); }
         }
 
         public string Fluence
         {
             get { return fluence; }
-            set
-            {
-                SetProperty(ref fluence, value);
-            }
+            set { SetProperty(ref fluence, value); }
         }
 
         public string Pulses
         {
             get { return pulses; }
-            set
-            {
-                SetProperty(ref pulses, value);
-            }
+            set { SetProperty(ref pulses, value); }
         }
 
         public string Commentaires
         {
             get { return commentaires; }
-            set
-            {
-                SetProperty(ref commentaires, value);
-            }
+            set { SetProperty(ref commentaires, value); }
         }
 
         public string Prix
         {
             get { return prix; }
-            set
-            {
-                SetProperty(ref prix, value);
-            }
+            set { SetProperty(ref prix, value); }
         }
 
         public int SéanceId { get; set; }
@@ -231,7 +204,6 @@ namespace OutilWPF.Données
         public int LapinId { get; set; }
         public string LapinName { get; set; }
         public string LapinColor { get; set; }
-
         public virtual ICollection<Patient> Patients { get; set; }
     }
 
@@ -239,7 +211,6 @@ namespace OutilWPF.Données
     {
         public int InfospId { get; set; }
         public string InfosName { get; set; }
-
         public virtual ICollection<Patient> Patients { get; set; }
     }
 }
