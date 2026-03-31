@@ -32,6 +32,26 @@
                     </DataTrigger>-->
                 </Style.Triggers>
             </Style>
+            <Style x:Key="SummaryTileStyle" TargetType="Border">
+                <Setter Property="Background" Value="{StaticResource Brush.SurfaceStrong}" />
+                <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="16" />
+                <Setter Property="Padding" Value="14" />
+                <Setter Property="Margin" Value="0,0,12,12" />
+                <Setter Property="Width" Value="220" />
+            </Style>
+            <Style x:Key="SummaryLabelStyle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="12" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="Foreground" Value="{StaticResource Brush.Accent}" />
+            </Style>
+            <Style x:Key="SummaryValueStyle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="20" />
+                <Setter Property="FontWeight" Value="Bold" />
+                <Setter Property="TextWrapping" Value="Wrap" />
+                <Setter Property="Margin" Value="0,6,0,0" />
+            </Style>
         </ScrollViewer.Resources>
         <StackPanel Margin="20">
             <Border Padding="22" CornerRadius="24" Background="#CCFFFDF8" BorderBrush="{StaticResource Brush.Border}" BorderThickness="1">
@@ -146,7 +166,34 @@
                     </WrapPanel>
                     <TabControl Margin="10,14,10,0" SelectedIndex="0">
                         <TabItem Header="Séances &amp; traitements">
-                            <Grid Margin="12,12,12,4">
+                            <StackPanel Margin="12,12,12,4">
+                                <WrapPanel Margin="0,0,0,12">
+                                    <Border Style="{StaticResource SummaryTileStyle}">
+                                        <StackPanel>
+                                            <TextBlock Text="Dernière séance" Style="{StaticResource SummaryLabelStyle}" />
+                                            <TextBlock Text="{Binding DerniereSeanceDateRésumé}" Style="{StaticResource SummaryValueStyle}" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Style="{StaticResource SummaryTileStyle}">
+                                        <StackPanel>
+                                            <TextBlock Text="Salle" Style="{StaticResource SummaryLabelStyle}" />
+                                            <TextBlock Text="{Binding DerniereSeanceSalleRésumé}" Style="{StaticResource SummaryValueStyle}" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Style="{StaticResource SummaryTileStyle}">
+                                        <StackPanel>
+                                            <TextBlock Text="Dernière zone traitée" Style="{StaticResource SummaryLabelStyle}" />
+                                            <TextBlock Text="{Binding DerniereZoneTraitéeRésumé}" Style="{StaticResource SummaryValueStyle}" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Style="{StaticResource SummaryTileStyle}">
+                                        <StackPanel>
+                                            <TextBlock Text="Dernier prix" Style="{StaticResource SummaryLabelStyle}" />
+                                            <TextBlock Text="{Binding DernierPrixRésumé}" Style="{StaticResource SummaryValueStyle}" />
+                                        </StackPanel>
+                                    </Border>
+                                </WrapPanel>
+                                <Grid>
                                 <Grid.RowDefinitions>
                                     <RowDefinition x:Name="ClinicalRowTop" Height="Auto" />
                                     <RowDefinition x:Name="ClinicalRowBottom" Height="0" />
@@ -261,7 +308,8 @@
                                         </DataGrid.Columns>
                                     </DataGrid>
                                 </StackPanel>
-                            </Grid>
+                                </Grid>
+                            </StackPanel>
                         </TabItem>
                         <TabItem Header="Administratif">
                             <ScrollViewer Margin="12,12,12,4" VerticalScrollBarVisibility="Auto">

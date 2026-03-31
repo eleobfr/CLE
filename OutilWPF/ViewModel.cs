@@ -290,6 +290,54 @@ namespace OutilWPF
             set { treatmentWorkspace.EditSéancePrix = value; }
         }
 
+        public string DerniereSeanceDateRésumé
+        {
+            get
+            {
+                var dernièreSéance = Séances?.OrderByDescending(s => s.DateSéance).FirstOrDefault();
+                return dernièreSéance != null ? dernièreSéance.DateSéance.ToString("dd/MM/yyyy") : "Aucune séance";
+            }
+        }
+
+        public string DerniereSeanceSalleRésumé
+        {
+            get
+            {
+                var dernièreSéance = Séances?.OrderByDescending(s => s.DateSéance).FirstOrDefault();
+                return dernièreSéance?.Praticien?.UserName ?? "Salle non renseignée";
+            }
+        }
+
+        public string DerniereZoneTraitéeRésumé
+        {
+            get
+            {
+                var dernierTraitement = Traitements?
+                    .OrderByDescending(t => t.Séance?.DateSéance ?? DateTime.MinValue)
+                    .ThenByDescending(t => t.TraitementId)
+                    .FirstOrDefault();
+
+                return string.IsNullOrWhiteSpace(dernierTraitement?.ZonesTraitées)
+                    ? "Zone non renseignée"
+                    : dernierTraitement.ZonesTraitées;
+            }
+        }
+
+        public string DernierPrixRésumé
+        {
+            get
+            {
+                var dernierTraitement = Traitements?
+                    .OrderByDescending(t => t.Séance?.DateSéance ?? DateTime.MinValue)
+                    .ThenByDescending(t => t.TraitementId)
+                    .FirstOrDefault();
+
+                return string.IsNullOrWhiteSpace(dernierTraitement?.Prix)
+                    ? "Prix non renseigné"
+                    : dernierTraitement.Prix;
+            }
+        }
+
         public void ExecutCreerNouvelleFichePatientCCommand()
         {
             patientWorkspace.CreateNewPatient();
@@ -523,8 +571,19 @@ namespace OutilWPF
         {
             RaisePropertyChanged(e.PropertyName);
 
+            if (e.PropertyName == nameof(Séances) || e.PropertyName == nameof(Traitements) || e.PropertyName == nameof(SelectedPatient))
+                RaiseClinicalSummaryProperties();
+
             if (e.PropertyName == nameof(EditSéanceZoneTraitée) || e.PropertyName == nameof(EditSéanceMS_Fluence) || e.PropertyName == nameof(SelectedPatient))
                 ExecuteCreerNouveauxTraitementCommand?.RaiseCanExecuteChanged();
+        }
+
+        private void RaiseClinicalSummaryProperties()
+        {
+            RaisePropertyChanged(nameof(DerniereSeanceDateRésumé));
+            RaisePropertyChanged(nameof(DerniereSeanceSalleRésumé));
+            RaisePropertyChanged(nameof(DerniereZoneTraitéeRésumé));
+            RaisePropertyChanged(nameof(DernierPrixRésumé));
         }
     }
     public class PatientSelect : BindableBase
